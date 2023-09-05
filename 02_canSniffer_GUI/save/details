@@ -1,0 +1,57 @@
+- Individual Wheels speed
+               right  left   spd217?
+,29A,00,00,08, 00,00, 00,00, 00,00, 09,F6 stationary
+
+,29A,00,00,08, 00,87, 00,87, 00,00, 0D,E4 moving slowly
+                 135    135
+,29A,00,00,08, 02,F1, 02,5F, 01,48, 03,5F moving to left
+                 753    607
+                    +24%
+                 
+,29A,00,00,08, 04,AE, 04,8C, 02,32, 05,84 moving
+                1198   1164    562 1198/562 = 2.13
+
+,29A,00,00,08, 13,29, 13,56, 09,2B, 0A,1C moving faster
+                4905   4950   2347 4905/2347 = 2.098
+
+One wheel only
+,29A,00,00,08, 09,4B, 00,00, 02,39, 09,67 right wheel only; OBD speed is 6 Km/h
+                2379
+              
+Need to save session to file while driving at higher speed, straight, see speed in 217
+
+------------------------------------------------------
+7DF and 7E8 appear when starting Torque
+ECI ID 7E8 responds at OBD requests
+
+-----------------------------------------------------
+Off,4F8 (Handbrake),                                00,00,08, 84,10,30,FF,FF,03,FF,00
+On,4F8 (Handbrake),                                 00,00,08, 88,10,30,FF,FF,03,FF,00
+
+-------------------------------------------
+Odometer
+,763,00,00,08, 06,62,02,07, 02,3C,AA, A3
+02,3C,AA => 146602 Km
+
+------------------------------------------
+Responses to 743
+>>> Solved
+Rq:   743 8           03 22 02 '07' 00 00 00 00
+Resp: 763,00,00,08,   06,62,02, 07, 02,3C,CD, A3
+
+>>> Not solved
+Cluster shows: odo2 = 1607.0 Km, consumption = 15.3, average consumption = 10.5 L/100, instantaneous consumptio = --- L/100, fuel left for = 230 Km, odo = 145.7 Km, average speed = 12.5 Km/h, outside temperature = 18 C, time = 11:24
+
+Rq:   743 8           03 22 02 '06' 00 00 00 00
+Resp: 763,00,00,08,   03,7F,22, 12, A3,A3,A3,A3
+
+Rq:   743 8           03 22 02 '08' 00 00 00 00   0322020800000000
+Resp: 763,00,00,08,   04,62,02, 08, 00,A3,A3,A3
+
+Rq:   743 8           03 22 02 '09' 00 00 00 00
+Resp: 763,00,00,08,   04,62,02, 09, 00, A3,A3,A3
+
+Rq:   743 8           03 22 02 '0A' 00 00 00 00
+Resp: 763,00,00,08,   03,7F,22, 12, A3,A3,A3,A3
+
+

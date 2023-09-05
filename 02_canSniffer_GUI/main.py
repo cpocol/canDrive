@@ -492,7 +492,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portSelectorComboBox.clear()
         comPorts = serial.tools.list_ports.comports()
         nameList = list(port.device for port in comPorts)
-        nameList.insert(0, nameList.pop(nameList.index("COM2")))
+        if "COM2" in nameList:
+            nameList.insert(0, nameList.pop(nameList.index("COM2")))
         for name in nameList:
             self.portSelectorComboBox.addItem(name)
 
