@@ -1,0 +1,140 @@
+TODO
+- Windshield washer not clear yet - needs more tests
+- keep watching fuel level hints
+- observe undecoded bytes from messages partially decoded
+- observe undecoded messages
+- "To do" items in .md
+
+===========================================================================================================================
+
+Seen IDs on CAN OBD:
+C6 352 350 55A 29A 217 2C6 354 35F 3B7 12E 5D7 242 666 55D 5DE 69F 4F8 6FB 29C 500 564 653 1F6 18A 511 65C 186 575
+
+Seen IDs on CAN Multimedia:
+434 408 31C 318
+
+===========================================================================================================================
+
+- Individual Wheels speed
+               right  left   spd217?
+,29A,00,00,08, 00,00, 00,00, 00,00, 09,F6 stationary
+
+,29A,00,00,08, 00,87, 00,87, 00,00, 0D,E4 moving slowly
+                 135    135
+,29A,00,00,08, 02,F1, 02,5F, 01,48, 03,5F moving to left
+                 753    607
+                    +24%
+                 
+,29A,00,00,08, 04,AE, 04,8C, 02,32, 05,84 moving
+                1198   1164    562 1198/562 = 2.13
+
+,29A,00,00,08, 13,29, 13,56, 09,2B, 0A,1C moving faster
+                4905   4950   2347 4905/2347 = 2.098
+
+One wheel only
+,29A,00,00,08, 09,4B, 00,00, 02,39, 09,67 right wheel only; OBD speed is 6 Km/h
+                2379
+              
+Need to save session to file while driving at higher speed, straight, see speed in 217
+
+===========================================================================================================================
+7DF and 7E8 appear when starting Torque
+ECU ID 7E8 responds at OBD requests
+
+===========================================================================================================================
+Off,4F8 (Handbrake),                                00,00,08, 84,10,30,FF,FF,03,FF,00
+On,4F8 (Handbrake),                                 00,00,08, 88,10,30,FF,FF,03,FF,00
+
+===========================================================================================================================
+Odometer
+,763,00,00,08, 06,62,02,07, 02,3C,AA, A3
+02,3C,AA => 146602 Km
+
+------------------------------------------
+Responses to 743
+>>> Solved
+Rq:   743 8           03 22 02 '07' 00 00 00 00     743 00 00  0322020700000000
+Resp: 763,00,00,08,   06,62,02, 07, 02,3C,CD, A3
+
+>>> Not solved
+Cluster shows: odo2 = 1607.0 Km, consumption = 15.3, average consumption = 10.5 L/100, instantaneous consumptio = --- L/100, fuel left for = 230 Km, odo = 145.7 Km, average speed = 12.5 Km/h, outside temperature = 18 C, time = 11:24
+
+Rq:   743 8           03 22 02 '06' 00 00 00 00
+Resp: 763,00,00,08,   03,7F,22, 12, A3,A3,A3,A3
+
+Rq:   743 8           03 22 02 '08' 00 00 00 00   0322020800000000
+Resp: 763,00,00,08,   04,62,02, 08, 00,A3,A3,A3
+
+Rq:   743 8           03 22 02 '09' 00 00 00 00
+Resp: 763,00,00,08,   04,62,02, 09, 00, A3,A3,A3
+
+Rq:   743 8           03 22 02 '0A' 00 00 00 00
+Resp: 763,00,00,08,   03,7F,22, 12, A3,A3,A3,A3
+
+===========================================================================================================================
+12E
+- Yaw rate
+- lateral acceleration
+    - reverse engineered with the car standing still
+    - when standing still, it reflects the roll angle [degs]
+    - when moving, it gets generarilzed as lateral acceleration [Gs]; LatAcc = G x sin(angle); same for LongAcc
+
+               d0   d1 d2   d3 d4        d5 d6 d7 RearHeight FrontHeight RollAngle Obs
+               --   RR RR   -- --        -- -- -- [cm]       [cm]        [degs]
+
+Looking for roll angle:
+right side lifted
+,12E,00,00,08, CD,  7F,E7,  7F,D0/F0,    FF,FF,00 42         42          -4.6
+,12E,00,00,08, CD,  7F,EA,  7F,D0/E0,    FF,FF,00 40         40          -3.8
+,12E,00,00,08, CD,  7F,EE,  7F,D0/F0/E0, FF,FF,00 38         38          -3.3
+,12E,00,00,08, CD,  7F,F2,  7F,D0/F0/F0, FF,FF,00 35         35          -2.1
+,12E,00,00,08, CD,  7F,F5,  7F,D0/E0/F0, FF,FF,00 33         33          -1.5
+                    7F,FB                                                 0.0 manual
+
+left side lifted (new location)
+,12E,00,00,08, C9,  7F,FE,  7F,E0,       FF,FF,00                         0.7
+,12E,00,00,08, C9,  7F,FF,  7F,F0,       FF,FF,00 delta2     delta2       1.3
+,12E,00,00,08, C9,  80,05,  7F,E0,       FF,FF,00 delta7     delta7       2.7
+
+Looking for pitch angle:
+rear lifted
+               d0   d1 d2   d3 d4        d5 d6 d7 RearHeight PitchAngle Obs
+               PP   -- --   -- --        -- -- -- [cm]       [degs]
+,12E,00,00,08, CC,                                            0.0 manual
+,12E,00,00,08, C9,  7F,FF,  7F,E0,       FF,FF,00            -1.2
+,12E,00,00,08, C7,  7F,FE,  7F,E0,       FF,FF,00 delta2     -1.5
+,12E,00,00,08, C6,  7F,FE,  7F,F0,       FF,FF,00 delta5     -2.2
+,12E,00,00,08, C3,  7F,FE,  7F,F0,       FF,FF,00 delta10    -3.4
+
+Combined (roll and pitch):
+,12E,00,00,08, C0,  80,17,  7F,D0/E0/F0, FF,FF,00                                  still !horiz
+,12E,00,00,08, CF,  7F,E9,  7F,E0,       FF,FF,00 40         42          4.1
+,12E,00,00,08, D1,  7F,EA,  7F,E0,       FF,FF,00 38         42          3.9
+
+Conclusions:
+- For LatAcc = 0, experimentally d1d2 = 0x7FFB, I guess it was officially designed to be 0x8000 (the error being 1.2 degrees or 0.02 G)
+- For LongAcc = 0, experimentally d0 = 0xCC
+- When stationary:
+    - roll = (d1d2 - 7FFB(32763)) * 0.243 (positive when the left car side is lifted)
+    - pitch = (d0 - CC(204)) * 0.366 (positive when the front is lifted) 
+-When moving:
+    - LatAcc  = sin((d1d2 - 32763) * 0.243) [G] (positive when the car turns to the left <=> the lateral acceleration vector points to the right)
+    - LongAcc = sin((d0   -   204) * 0.366) [G] (positive when the car decelerates <=> the longitudinal acceleration vector points forward)
+
+===========================================================================================================================
+- Fuel level:        t0            t1 (\/)      t2 (50%+)
+            352 d0 = 5C            5C           5C xxxxxxxxxx
+            55D d2 = 68            60           60 xxxxxxxxxx
+            5D7 d4d5 = 5150      5150         87A0 -          0E20 xxxxxxxxx
+            5DA d1 = 5E            5E           5E xxxxxxxxxx
+            65C d0 = 6E            9A xxxxxxxxx B8 xxxxxxxxxx
+            350 d1 d6d7=53 54__ 53 54__    53 6489            53   6489 xxxxxxxxx
+
+===========================================================================================================================
+55D
+Descr: Headlights, Windshield washer
+
+Wash,55D (Headlights_Wash),                         00,00,08, 00,DA,60,00,82,80,00,00
+Off,55D (Headlights_Wash),                          00,00,08, 00,FD,60,00,81,80,00,00
+Low beam,55D (Headlights_Wash),                     00,00,08, 00,FD,60,00,81,C0,00,00
+High beam,55D (Headlights_Wash),                    00,00,08, 00,FD,60,00,81,A0,00,00

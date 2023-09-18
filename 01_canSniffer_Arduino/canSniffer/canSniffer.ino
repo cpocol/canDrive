@@ -22,7 +22,26 @@
 //------------------------------------------------------------------------------
 // Settings
 #define RANDOM_CAN 0
-#define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
+//OBD CAN
+#define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra); 500E3 (for Dacia)
+
+//Multimedia CAN
+#define CAN_SPEED (500E3) // for Dacia, it works with 500E3
+// #define CAN_SPEED (250E3)
+// #define CAN_SPEED (250E3)
+// #define CAN_SPEED (200E3)
+// #define CAN_SPEED (125E3)
+// #define CAN_SPEED (100E3)
+// #define CAN_SPEED (95E3)
+// #define CAN_SPEED (83E3)
+// #define CAN_SPEED (80E3)
+// #define CAN_SPEED (50E3)
+// #define CAN_SPEED (40E3)
+// #define CAN_SPEED (33E3)
+// #define CAN_SPEED (20E3)
+// #define CAN_SPEED (10E3)
+// #define CAN_SPEED (5E3)
+
 //------------------------------------------------------------------------------
 // Inits, globals
 typedef struct {
@@ -196,6 +215,7 @@ void setup() {
   randomSeed(12345);
   Serial.println("randomCAN Started");
 #else
+  Serial.println(CAN_SPEED);
   if (!CAN.begin(CAN_SPEED)) {
     Serial.println("Starting CAN failed!");
     while (1);
