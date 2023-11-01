@@ -203,7 +203,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def hideAllPackets(self):
         text = ""
         for id in self.idDict:
-            text += id + " "
+            text += str(id) + " "
         self.hideIdsLineEdit.setText(text)
         self.clearTableCallback()
 
@@ -267,7 +267,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.loadTableFromFile(self.decodedMessagesTableWidget, "save/decodedPackets.csv")
         self.loadTableFromFile(self.idLabelDictTable, "save/labelDict.csv")
         for row in range(self.idLabelDictTable.rowCount()):
-            self.idLabelDict[str(self.idLabelDictTable.item(row, 0).text())] = \
+            self.idLabelDict[int(self.idLabelDictTable.item(row, 0).text(), 16)] = \
                 str(self.idLabelDictTable.item(row, 1).text())
         self.isInited = True
 
@@ -297,69 +297,66 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                             rowData.append('')
                     writer.writerow(rowData)
 
-    def mainTablePopulatorCallback(self, rowData):
+    def mainTablePopulatorCallback(self, msg):
+
+        Id_str = msg[1]
+        Id_int = int(Id_str, 16)
 
         if self.showOnlyIdsCheckBox.isChecked():
-            if str(rowData[1]) not in self.showOnlyIdsSet:
+            if Id_str not in self.showOnlyIdsSet:
                 return
         if self.hideIdsCheckBox.isChecked():
-            if str(rowData[1]) in self.hideIdsSet:
+            if Id_str in self.hideIdsSet:
                 return
 
-        newId = str(rowData[1])
-
-        row = 0  # self.mainMessageTableWidget.rowCount()
         if self.groupModeCheckBox.isChecked():
-            if newId in self.idDict.keys():
-                row = self.idDict[newId]
+            if Id_int in self.idDict.keys():
+                row = self.idDict[Id_int]
             else:
                 row = self.mainMessageTableWidget.rowCount()
                 self.mainMessageTableWidget.insertRow(row)
         else:
+            row = 0
             self.mainMessageTableWidget.insertRow(row)
 
         if self.mainMessageTableWidget.isRowHidden(row):
             self.mainMessageTableWidget.setRowHidden(row, False)
 
-        for i in range(self.mainMessageTableWidget.columnCount()):
-            if i < len(rowData):
-                data = str(rowData[i])
-                item = self.mainMessageTableWidget.item(row, i)
+        highlightNewData = self.highlightNewDataCheckBox.isChecked() and \
+                           self.groupModeCheckBox.isChecked()
+        columnCount = self.mainMessageTableWidget.columnCount()
+        msgLen = len(msg)
+        for col in range(columnCount):
+            highlight = highlightNewData and col > 4
+            if col < msgLen:
+                data = str(msg[col])
                 newItem = QTableWidgetItem(data)
-                if item:
-                    if item.text() != data:
-                        if self.highlightNewDataCheckBox.isChecked() and \
-                                self.groupModeCheckBox.isChecked() and \
-                                i > 4:
+                if highlight:
+                    item = self.mainMessageTableWidget.item(row, col)
+                    if item:
+                        if item.text() != data:
                             newItem.setBackground(QColor(104, 37, 98))
-                else:
-                    if self.highlightNewDataCheckBox.isChecked() and \
-                            self.groupModeCheckBox.isChecked() and \
-                            i > 4:
+                    else:
                         newItem.setBackground(QColor(104, 37, 98))
-            else:
-                newItem = QTableWidgetItem()
-            self.mainMessageTableWidget.setItem(row, i, newItem)
-
-        isFamiliar = False
+                self.mainMessageTableWidget.setItem(row, col, newItem)
 
         if self.highlightNewIdCheckBox.isChecked():
-            if newId not in self.idDict.keys():
+            if Id_int not in self.idDict.keys():
+                self.idDict[Id_int] = row
                 for j in range(3):
                     self.mainMessageTableWidget.item(row, j).setBackground(QColor(52, 44, 124))
 
-        self.idDict[newId] = row
 
-        if newId in self.idLabelDict.keys():
-            value = newId + " (" + self.idLabelDict[newId] + ")"
+        isFamiliar = False
+        if Id_int in self.idLabelDict.keys():
+            value = Id_str + " (" + self.idLabelDict[Id_int] + ")"
             self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
             isFamiliar = True
 
-        for i in range(self.mainMessageTableWidget.columnCount()):
-            if (isFamiliar or (newId.find("(") >= 0)) and i < 3:
+        colsNum = min(columnCount, 3)
+        if isFamiliar:
+            for i in range(colsNum):
                 self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
-
-            self.mainMessageTableWidget.item(row, i).setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
 
         self.receivedPackets = self.receivedPackets + 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
@@ -382,8 +379,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                         for i in range(len(rowData)):
                             if len(rowData[i]):
                                 item = QTableWidgetItem(str(rowData[i]))
-                                if not (table == self.decodedMessagesTableWidget and i == 0):
-                                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+                                #if not (table == self.decodedMessagesTableWidget and i == 0):
+                                #    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
                                 table.setItem(row, i, item)
             except OSError:
                 print("file not found: " + path)
@@ -411,7 +408,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.idLabelDictTable.setItem(newRow, 0, QTableWidgetItem(widgetItem))
         widgetItem.setText(self.saveLabelToDictLineEdit.text())
         self.idLabelDictTable.setItem(newRow, 1, QTableWidgetItem(widgetItem))
-        self.idLabelDict[str(self.saveIdToDictLineEdit.text())] = str(self.saveLabelToDictLineEdit.text())
+        self.idLabelDict[str(self.saveIdToDictLineEdit.text())] = int(self.saveLabelToDictLineEdit.text(), 16)
         self.saveIdToDictLineEdit.setText('')
         self.saveLabelToDictLineEdit.setText('')
         self.saveTableToFile(self.idLabelDictTable, "save/labelDict.csv")
@@ -452,10 +449,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         rowData = [str(time - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # IDE, RTR, EXT
-        DLC = len(packetSplit[3]) // 2
-        rowData.append(str("{:02X}".format(DLC)))  # DLC
+        DLCx2 = len(packetSplit[3])
+        DLC = DLCx2 // 2
+        rowData.append("{:02X}".format(DLC))  # DLC
         if DLC > 0:
-            rowData += [packetSplit[3][i:i + 2] for i in range(0, len(packetSplit[3]), 2)]  # data
+            rowData += [packetSplit[3][i:i + 2] for i in range(0, DLCx2, 2)]  # data
 
         self.mainTablePopulatorCallback(rowData)
 

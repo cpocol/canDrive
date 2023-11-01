@@ -3,7 +3,34 @@ References:\
 (2) https://canhacker.com/examples/renault-kaptur-can-bus/
 
 ```
-\/ TEMPLATE \/
+Map of reverse engineered bytes/bits (more details below):
+
+ID   Descr             DLC     d0       d1       d2       d3       d4       d5       d6       d7
+---------------------------------------------------------------------------------------------------
+12E  IMU                7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
+186  Ignition           7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
+18A  Acc pedal          6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
+217  Speed              7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
+29A  Wheels speed       8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
+350  Car lock           8   ........ ........ ........ ........ ........ ........ ..LLRRL. ....rr..
+352  Brake              4   ........ ........ ........ BBBBBBBB
+3B7  Illumination       6   ........ .....III I....... ........ ........ ........
+4F8  Handbrake          8   ....HH.. ........ ........ ........ ........ ........ ........ ........
+55D  Headlights, Washer 8   ........ ...RRR.. ........ ........ ......LL .HH..... ........ ........
+5DA  Engine Temp        8   TTTTTTTT ........ ........ ........ ........ ........ ........ ........
+5DE  Lights             8   .TTFFPLH ....L.R. .r...... ........ ........ ........ ........ ........
+653  Seatbelt           4   ........ .B...... ........ ........
+743  Ask OBD            8   ........ ........ ........ AAAAAAAA ........ ........ ........ ........
+763  Odo                8   ........ ........ ........ ........ OOOOOOOO OOOOOOOO OOOOOOOO ........
+7DF  OBD Request        3         02       01      PID
+7E8  OBD Response    >= 3         41      PID       d1       d2 ...
+
+```
+
+
+
+```
+\/ TEMPLATE for new CAN message IDs \/
 ===========================================================================================================================
 0
 Descr: 
@@ -122,7 +149,7 @@ Source:
 Dest: 
 Length (DLC) = 4 Bytes
 ........ ........ ........ BBBBBBBB
-                           |Brake
+                           |Brake pressure
                            |0 - 255
                            --------
 
@@ -254,10 +281,11 @@ Descr: Ask Odo data via OBD \ UDS protocol
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
-763000008 ........ ........ ........ AAAAAAAA ........ ........ ........ ........
-                                     |This one seems to matter
-                                     |07 - Odometer
-                                     --------------
+763000008 03 22 02 07 00 00 00 00
+                   |This one seems to matter
+                   |07 - Odometer
+                   --------------
+
 (2)
 
 
@@ -285,7 +313,7 @@ Length (DLC) = 3 Bytes
 Descr: OBD parameter response
 Source: 
 Dest: 
-Length (DLC) >= 3 (depends in the currne PID)
+Length (DLC) >= 3 (depends on the current PID)
 41 PID d1 d2 ...
 
 ```
@@ -300,6 +328,7 @@ Done:
 - Engine RPM (186)
 - Engine temperature (5DA)
 - Handbrake (4F8)
+- Lateral acceleration (12E)
 - Lights
     - Illumination (3B7)
     - Front/rear fog lights (5DE)
@@ -319,19 +348,18 @@ Done:
 
 
 Other derivable info:
-- No individual speed gear; the only info is Neutral|Reverse|Forward; BUT: can be determined from RPM vs Speed when in Forward for a while
+- No individual speed gear; the only info is Neutral|Reverse|Forward; BUT: can be determined from RPM vs Speed when in Forward for a while (the clutch needs some time until fully engaged - less than a second; filtering out short RPM/Speed matches should suffice here)
 
 
 To do:
-- Yaw rate ()
-- Lateral acceleration (12E), in progress: see CAN_Messages_Sandero_Details.txt
+- Yaw rate
  
 
 Seems not doable, yet:
 - Steering wheel angle 0xC6
-    - the message doesn't come at a good peace
-    - 0xC6 d0 goes from 6A (wheel turned rightmost) to 96 (wheel turned leftmost); d1 might be LSB
-         d2d3 looks like steering wheel angle variation
+    - the message doesn't come at a good pace
+    - d0 goes from 96 (wheel turned leftmost) to 6A (wheel turned rightmost); d1 might be LSB
+    - d2d3 looks like steering wheel angle variation
 
 
 Not Doable:
@@ -349,28 +377,3 @@ Not Doable:
 - Windows
 - Wipers
 
-
-```
-Map of reverse engineered bytes/bits:
-
-ID   Descr             DLC     d0       d1       d2       d3       d4       d5       d6       d7
----------------------------------------------------------------------------------------------------
-12E  IMU                7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
-186  Ignition           7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
-18A  Acc pedal          6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
-217  Speed              7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
-29A  Wheels speed       8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
-350  Car lock           8   ........ ........ ........ ........ ........ ........ ..LLRRL. ....rr..
-352  Brake              4   ........ ........ ........ BBBBBBBB
-3B7  Illumination       6   ........ .....III I....... ........ ........ ........
-4F8  Handbrake          8   ....HH.. ........ ........ ........ ........ ........ ........ ........
-55D  Headlights, Washer 8   ........ ...RRR.. ........ ........ ......LL .HH..... ........ ........
-5DA  Engine Temp        8   TTTTTTTT ........ ........ ........ ........ ........ ........ ........
-5DE  Lights             8   .TTFFPLH ....L.R. .r...... ........ ........ ........ ........ ........
-653  Seatbelt           4   ........ .B...... ........ ........
-743  Ask OBD            8   ........ ........ ........ AAAAAAAA ........ ........ ........ ........
-763  Odo                8   ........ ........ ........ ........ OOOOOOOO OOOOOOOO OOOOOOOO ........
-7DF  OBD Request        3         02       01      PID
-7E8  OBD Response    >= 3         41      PID       d1       d2 ...
-
-```

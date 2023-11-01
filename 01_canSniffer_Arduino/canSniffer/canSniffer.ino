@@ -26,7 +26,7 @@
 #define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra); 500E3 (for Dacia)
 
 //Multimedia CAN
-#define CAN_SPEED (500E3) // for Dacia, it works with 500E3
+//#define CAN_SPEED (500E3) // for Dacia, it works with 500E3
 // #define CAN_SPEED (250E3)
 // #define CAN_SPEED (250E3)
 // #define CAN_SPEED (200E3)
