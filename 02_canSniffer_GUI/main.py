@@ -22,6 +22,10 @@ import SerialReader
 import SerialWriter
 import FileLoader
 
+#config
+showFrequencyInsteadOfRTR = True
+
+
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
@@ -81,6 +85,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.playbackMainTableIndex = 0
         self.labelDictFile = None
         self.idDict = dict([])
+        self.countDict = dict([])
+        self.frequencyTSDict = dict([])
         self.showOnlyIdsSet = set([])
         self.hideIdsSet = set([])
         self.idLabelDict = dict()
@@ -94,10 +100,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.mainMessageTableWidget.setColumnWidth(i, 32)
         for i in range(5, self.mainMessageTableWidget.columnCount()):
             self.decodedMessagesTableWidget.setColumnWidth(i, 32)
-        self.decodedMessagesTableWidget.setColumnWidth(1, 150)
+        self.mainMessageTableWidget.setColumnWidth(1, 250)
         self.decodedMessagesTableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.txTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.showFullScreen()
+
+        if showFrequencyInsteadOfRTR:
+            newItem = QTableWidgetItem("Frequency")
+            self.mainMessageTableWidget.setHorizontalHeaderItem(2, newItem)
 
     def stopPlayBackCallback(self):
         try:
@@ -297,71 +307,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                             rowData.append('')
                     writer.writerow(rowData)
 
-    def mainTablePopulatorCallback(self, msg):
-
-        Id_str = msg[1]
-        Id_int = int(Id_str, 16)
-
-        if self.showOnlyIdsCheckBox.isChecked():
-            if Id_str not in self.showOnlyIdsSet:
-                return
-        if self.hideIdsCheckBox.isChecked():
-            if Id_str in self.hideIdsSet:
-                return
-
-        if self.groupModeCheckBox.isChecked():
-            if Id_int in self.idDict.keys():
-                row = self.idDict[Id_int]
-            else:
-                row = self.mainMessageTableWidget.rowCount()
-                self.mainMessageTableWidget.insertRow(row)
-        else:
-            row = 0
-            self.mainMessageTableWidget.insertRow(row)
-
-        if self.mainMessageTableWidget.isRowHidden(row):
-            self.mainMessageTableWidget.setRowHidden(row, False)
-
-        highlightNewData = self.highlightNewDataCheckBox.isChecked() and \
-                           self.groupModeCheckBox.isChecked()
-        columnCount = self.mainMessageTableWidget.columnCount()
-        msgLen = len(msg)
-        for col in range(columnCount):
-            highlight = highlightNewData and col > 4
-            if col < msgLen:
-                data = str(msg[col])
-                newItem = QTableWidgetItem(data)
-                if highlight:
-                    item = self.mainMessageTableWidget.item(row, col)
-                    if item:
-                        if item.text() != data:
-                            newItem.setBackground(QColor(104, 37, 98))
-                    else:
-                        newItem.setBackground(QColor(104, 37, 98))
-                self.mainMessageTableWidget.setItem(row, col, newItem)
-
-        if self.highlightNewIdCheckBox.isChecked():
-            if Id_int not in self.idDict.keys():
-                self.idDict[Id_int] = row
-                for j in range(3):
-                    self.mainMessageTableWidget.item(row, j).setBackground(QColor(52, 44, 124))
-
-
-        isFamiliar = False
-        if Id_int in self.idLabelDict.keys():
-            value = Id_str + " (" + self.idLabelDict[Id_int] + ")"
-            self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
-            isFamiliar = True
-
-        colsNum = min(columnCount, 3)
-        if isFamiliar:
-            for i in range(colsNum):
-                self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
-
-        self.receivedPackets = self.receivedPackets + 1
-        self.packageCounterLabel.setText(str(self.receivedPackets))
-
-
     def loadTableFromFile(self, table, path):
         if path is None:
             path, _ = QFileDialog.getOpenFileName(self, 'Open File', './save', 'CSV(*.csv)')
@@ -494,6 +439,88 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             nameList.insert(0, nameList.pop(nameList.index("COM2")))
         for name in nameList:
             self.portSelectorComboBox.addItem(name)
+
+    def mainTablePopulatorCallback(self, msg):
+
+        Id_str = msg[1]
+        Id_int = int(Id_str, 16)
+
+        if self.showOnlyIdsCheckBox.isChecked():
+            if Id_str not in self.showOnlyIdsSet:
+                return
+        if self.hideIdsCheckBox.isChecked():
+            if Id_str in self.hideIdsSet:
+                return
+
+        if self.groupModeCheckBox.isChecked():
+            if Id_int in self.idDict.keys():
+                row = self.idDict[Id_int]
+            else:
+                row = self.mainMessageTableWidget.rowCount()
+                self.mainMessageTableWidget.insertRow(row)
+        else:
+            row = 0
+            self.mainMessageTableWidget.insertRow(row)
+
+        if self.mainMessageTableWidget.isRowHidden(row):
+            self.mainMessageTableWidget.setRowHidden(row, False)
+
+        highlightNewData = self.highlightNewDataCheckBox.isChecked() and \
+                           self.groupModeCheckBox.isChecked()
+        columnCount = self.mainMessageTableWidget.columnCount()
+        msgLen = len(msg)
+        visibleColumnsCount = 5
+        msgCol = 0
+        for uiCol in range(columnCount):
+            highlight = highlightNewData and uiCol >= visibleColumnsCount
+            if msgCol < msgLen:
+                data = str(msg[msgCol])
+                if showFrequencyInsteadOfRTR and msgCol == 2:
+                    if Id_int not in self.countDict:
+                        self.countDict[Id_int] = 1
+                        self.frequencyTSDict[Id_int] = time.time()
+                        freq = 1
+                    else:
+                        if time.time() - self.frequencyTSDict[Id_int] > 1000: # reset
+                            self.countDict[Id_int] = 1
+                            self.frequencyTSDict[Id_int] = time.time()
+                            freq = 1
+                        else:
+                            self.countDict[Id_int] += 1
+                            freq = self.countDict[Id_int] / (time.time() - self.frequencyTSDict[Id_int])
+                    data = str(float(int(freq * 10)) / 10)
+                newItem = QTableWidgetItem(data)
+                if highlight:
+                    item = self.mainMessageTableWidget.item(row, uiCol)
+                    if item:
+                        if item.text() != data:
+                            newItem.setBackground(QColor(104, 37, 98))
+                    else:
+                        newItem.setBackground(QColor(104, 37, 98))
+                self.mainMessageTableWidget.setItem(row, uiCol, newItem)
+            msgCol += 1
+
+        if self.highlightNewIdCheckBox.isChecked():
+            if Id_int not in self.idDict.keys():
+                self.idDict[Id_int] = row
+                for j in range(3):
+                    self.mainMessageTableWidget.item(row, j).setBackground(QColor(52, 44, 124))
+
+
+        isFamiliar = False
+        if Id_int in self.idLabelDict.keys():
+            value = Id_str + " (" + self.idLabelDict[Id_int] + ")"
+            self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
+            isFamiliar = True
+
+        colsNum = min(columnCount, 3)
+        if isFamiliar:
+            for i in range(colsNum):
+                self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
+
+        self.receivedPackets = self.receivedPackets + 1
+        self.packageCounterLabel.setText(str(self.receivedPackets))
+
 
 
 def exception_hook(exctype, value, traceback):
