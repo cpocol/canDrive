@@ -24,6 +24,7 @@
 #define RANDOM_CAN 0
 //OBD CAN
 #define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra); 500E3 (for Dacia)
+//#define CAN_SPEED (80E3) //Multimedia CAN
 
 //Multimedia CAN
 //#define CAN_SPEED (500E3) // for Dacia, it works with 500E3
