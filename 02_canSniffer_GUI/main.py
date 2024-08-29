@@ -24,6 +24,19 @@ import FileLoader
 
 #config
 showFrequencyInsteadOfRTR = True
+#preferredComPort = None
+preferredComPort = "COM14"
+#autoConnect = False
+autoConnect = True
+
+
+showFrequencyColumn = True
+
+colTS, colID, colRTR, colIDE = range(4)
+if showFrequencyColumn:
+    colRTR += 1
+    colIDE += 1
+    
 
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
@@ -108,6 +121,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if showFrequencyInsteadOfRTR:
             newItem = QTableWidgetItem("Frequency")
             self.mainMessageTableWidget.setHorizontalHeaderItem(2, newItem)
+            
+        if autoConnect:
+            self.serialPortConnect()
 
     def stopPlayBackCallback(self):
         try:
@@ -435,8 +451,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portSelectorComboBox.clear()
         comPorts = serial.tools.list_ports.comports()
         nameList = list(port.device for port in comPorts)
-        if "COM2" in nameList:
-            nameList.insert(0, nameList.pop(nameList.index("COM2")))
+        if preferredComPort:
+            if preferredComPort in nameList:
+                nameList.insert(0, nameList.pop(nameList.index(preferredComPort)))
         for name in nameList:
             self.portSelectorComboBox.addItem(name)
 
