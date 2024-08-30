@@ -24,19 +24,27 @@ import FileLoader
 
 #config
 showFrequencyInsteadOfRTR = True
+showNotSeenInsteadOfIDE = True
+
+
 #preferredComPort = None
-preferredComPort = "COM14"
+preferredComPort = "COM10"
+
 #autoConnect = False
 autoConnect = True
 
+#autoStartSniffing = False
+autoStartSniffing = True
 
-showFrequencyColumn = True
+if not autoConnect:
+    autoStartSniffing = False
 
-colTS, colID, colRTR, colIDE = range(4)
-if showFrequencyColumn:
-    colRTR += 1
-    colIDE += 1
-    
+#config columns
+colTS, colID, colRTR, colIDE, colDLC, colD0 = range(6)
+
+highlightNewIdColor = QColor(52, 44, 124)
+highlightNewDataColor = QColor(104, 37, 98)
+knownIdColor = QColor(53, 81, 52)
 
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
@@ -97,9 +105,13 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.receivedPackets = 0
         self.playbackMainTableIndex = 0
         self.labelDictFile = None
-        self.idDict = dict([])
-        self.countDict = dict([])
+
+        self.id2Row = dict([])
+        self.frequencyCntDict = dict([])
         self.frequencyTSDict = dict([])
+        self.lastSeenTSDict = dict([])
+        self.row2Id = dict([])
+
         self.showOnlyIdsSet = set([])
         self.hideIdsSet = set([])
         self.idLabelDict = dict()
@@ -109,21 +121,28 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if not os.path.exists("save"):
             os.makedirs("save")
 
-        for i in range(5, self.mainMessageTableWidget.columnCount()):
+        for i in range(colD0, self.mainMessageTableWidget.columnCount()):
             self.mainMessageTableWidget.setColumnWidth(i, 32)
-        for i in range(5, self.mainMessageTableWidget.columnCount()):
+        for i in range(5, self.decodedMessagesTableWidget.columnCount()):
             self.decodedMessagesTableWidget.setColumnWidth(i, 32)
-        self.mainMessageTableWidget.setColumnWidth(1, 250)
+        self.mainMessageTableWidget.setColumnWidth(colID, 250)
         self.decodedMessagesTableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.txTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.showFullScreen()
 
         if showFrequencyInsteadOfRTR:
             newItem = QTableWidgetItem("Frequency")
-            self.mainMessageTableWidget.setHorizontalHeaderItem(2, newItem)
-            
-        if autoConnect:
+            self.mainMessageTableWidget.setHorizontalHeaderItem(colRTR, newItem)
+
+        if showNotSeenInsteadOfIDE and self.groupModeCheckBox.isChecked():
+            newItem = QTableWidgetItem("NotSeen")
+            self.mainMessageTableWidget.setHorizontalHeaderItem(colIDE, newItem)
+
+        if autoStartSniffing:
             self.serialPortConnect()
+
+        if autoConnect:
+            self.startSniffing()
 
     def stopPlayBackCallback(self):
         try:
@@ -152,21 +171,23 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if row < 0:
             self.stopPlayBackCallback()
             return
+
         maxRows = self.mainMessageTableWidget.rowCount()
+        maxCols = self.mainMessageTableWidget.columnCount()
         txBuf = ""
-        id = ((self.mainMessageTableWidget.item(row, 1).text()).split(" "))[0]
+        id = ((self.mainMessageTableWidget.item(row, colID).text()).split(" "))[0]
         if len(id) % 2:
             txBuf += '0'
-        txBuf += id + ',' + self.mainMessageTableWidget.item(row, 2).text() + ',' + \
-                 self.mainMessageTableWidget.item(row, 3).text() + ','
-        for i in range(5, self.mainMessageTableWidget.columnCount()):
+        txBuf += id + ',' + self.mainMessageTableWidget.item(row, colRTR).text() + ',' + \
+                 self.mainMessageTableWidget.item(row, colIDE).text() + ','
+        for i in range(colD0, maxCols):
             txBuf += self.mainMessageTableWidget.item(row, i).text()
         txBuf += '\n'
         if row < maxRows - 1:
-            dt = float(self.mainMessageTableWidget.item(row, 0).text()) - float(
-                self.mainMessageTableWidget.item(row + 1, 0).text())
+            dt = float(self.mainMessageTableWidget.item(row, colTS).text()) - \
+                    float(self.mainMessageTableWidget.item(row + 1, colTS).text())
             sec_to_ms = 1000
-            if '.' not in self.mainMessageTableWidget.item(row, 0).text():
+            if '.' not in self.mainMessageTableWidget.item(row, colTS).text():
                 sec_to_ms = 1       # timestamp already in ms
             dt = abs(int(dt * sec_to_ms))
             self.serialWriterThread.setNormalWriteDelay(dt)
@@ -186,7 +207,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.playbackMainTable1Packet()
 
     def clearTableCallback(self):
-        self.idDict.clear()
+        self.id2Row.clear()
         self.mainMessageTableWidget.setRowCount(0)
 
     def sendDecodedPacketCallback(self):
@@ -197,9 +218,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         newItem = QTableWidgetItem(newId[0])
         self.txTable.setItem(newRow, 0, QTableWidgetItem(newItem))
         for i in range(1, 3):
-            self.txTable.setItem(newRow, i, QTableWidgetItem(self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1)))
+            self.txTable.setItem(newRow, i, QTableWidgetItem(self.decodedMessagesTableWidget.item(decodedCurrentRow, i + 1)))
         newData = ""
-        for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())):
+        DLC = int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())
+        for i in range(DLC):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
         self.txTable.setItem(newRow, 3, QTableWidgetItem(newData))
         self.txTable.selectRow(newRow)
@@ -228,7 +250,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def hideAllPackets(self):
         text = ""
-        for id in self.idDict:
+        for id in self.id2Row:
             text += str(id) + " "
         self.hideIdsLineEdit.setText(text)
         self.clearTableCallback()
@@ -238,13 +260,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             return
         if not self.groupModeCheckBox.isChecked():
             return
+        currTS = time.time()
         for i in range(self.mainMessageTableWidget.rowCount()):
             if self.mainMessageTableWidget.isRowHidden(i):
                 continue
-            packetTime = float(self.mainMessageTableWidget.item(i, 0).text())
-            if (time.time() - self.startTime) - packetTime > self.hideOldPeriod.value():
-                # print("Hiding: " + str(self.mainMessageTableWidget.item(i,1).text()))
-                # print(time.time() - self.start_time)
+            packetTime = float(self.mainMessageTableWidget.item(i, colTS).text())
+            if (currTS - self.startTime) - packetTime > self.hideOldPeriod.value():
+                # print("Hiding: " + str(self.mainMessageTableWidget.item(i, colID).text()))
+                # print(currTS - self.start_time)
                 self.mainMessageTableWidget.setRowHidden(i, True)
 
     def sendTxTableCallback(self):
@@ -348,7 +371,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def loadSessionFromFile(self):
         if self.autoclearCheckBox.isChecked():
-            self.idDict.clear()
+            self.id2Row.clear()
             self.mainMessageTableWidget.setRowCount(0)
         self.loadTableFromFile(self.mainMessageTableWidget, None)
 
@@ -356,7 +379,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.saveTableToFile(self.mainMessageTableWidget, None)
 
     def cellWasClicked(self):
-        self.saveIdToDictLineEdit.setText(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), 1).text())
+        self.saveIdToDictLineEdit.setText(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), colID).text())
 
     def saveIdLabelToDictCallback(self):
         if (not self.saveIdToDictLineEdit.text()) or (not self.saveLabelToDictLineEdit.text()):
@@ -376,7 +399,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def startSniffing(self):
         if self.autoclearCheckBox.isChecked():
-            self.idDict.clear()
+            self.id2Row.clear()
             self.mainMessageTableWidget.setRowCount(0)
         self.startSniffingButton.setEnabled(False)
         self.stopSniffingButton.setEnabled(True)
@@ -409,7 +432,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             return
 
         rowData = [str(time - self.startTime)[:7]]  # timestamp
-        rowData += packetSplit[0:3]  # IDE, RTR, EXT
+        rowData += packetSplit[0:3]  # ID, RTR, EXT
         DLCx2 = len(packetSplit[3])
         DLC = DLCx2 // 2
         rowData.append("{:02X}".format(DLC))  # DLC
@@ -458,9 +481,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.portSelectorComboBox.addItem(name)
 
     def mainTablePopulatorCallback(self, msg):
-
         Id_str = msg[1]
         Id_int = int(Id_str, 16)
+
+        currTS = time.time()
+        self.lastSeenTSDict[Id_int] = currTS
 
         if self.showOnlyIdsCheckBox.isChecked():
             if Id_str not in self.showOnlyIdsSet:
@@ -470,10 +495,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                 return
 
         if self.groupModeCheckBox.isChecked():
-            if Id_int in self.idDict.keys():
-                row = self.idDict[Id_int]
+            if Id_int in self.id2Row.keys():
+                row = self.id2Row[Id_int]
             else:
                 row = self.mainMessageTableWidget.rowCount()
+                self.row2Id[row] = Id_int
                 self.mainMessageTableWidget.insertRow(row)
         else:
             row = 0
@@ -486,59 +512,62 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                            self.groupModeCheckBox.isChecked()
         columnCount = self.mainMessageTableWidget.columnCount()
         msgLen = len(msg)
-        visibleColumnsCount = 5
-        msgCol = 0
+        visibleColumnsCount = colD0
         for uiCol in range(columnCount):
+            msgCol = uiCol
             highlight = highlightNewData and uiCol >= visibleColumnsCount
             if msgCol < msgLen:
                 data = str(msg[msgCol])
-                if showFrequencyInsteadOfRTR and msgCol == 2:
-                    if Id_int not in self.countDict:
-                        self.countDict[Id_int] = 1
-                        self.frequencyTSDict[Id_int] = time.time()
+                if showFrequencyInsteadOfRTR and uiCol == colRTR:
+                    if Id_int not in self.frequencyCntDict:
+                        self.frequencyCntDict[Id_int] = 1
+                        self.frequencyTSDict[Id_int] = currTS
                         freq = 1
                     else:
-                        if time.time() - self.frequencyTSDict[Id_int] > 1000: # reset
-                            self.countDict[Id_int] = 1
-                            self.frequencyTSDict[Id_int] = time.time()
+                        if currTS - self.frequencyTSDict[Id_int] > 1000: # reset
+                            self.frequencyCntDict[Id_int] = 1
+                            self.frequencyTSDict[Id_int] = currTS
                             freq = 1
                         else:
-                            self.countDict[Id_int] += 1
-                            freq = self.countDict[Id_int] / (time.time() - self.frequencyTSDict[Id_int])
-                    data = str(float(int(freq * 10)) / 10)
+                            self.frequencyCntDict[Id_int] += 1
+                            freq = self.frequencyCntDict[Id_int] / (currTS - self.frequencyTSDict[Id_int])
+                    data = "{:.1f}".format(freq)
                 newItem = QTableWidgetItem(data)
                 if highlight:
                     item = self.mainMessageTableWidget.item(row, uiCol)
                     if item:
                         if item.text() != data:
-                            newItem.setBackground(QColor(104, 37, 98))
+                            newItem.setBackground(highlightNewDataColor)
                     else:
-                        newItem.setBackground(QColor(104, 37, 98))
+                        newItem.setBackground(highlightNewDataColor)
                 self.mainMessageTableWidget.setItem(row, uiCol, newItem)
-            msgCol += 1
 
         if self.highlightNewIdCheckBox.isChecked():
-            if Id_int not in self.idDict.keys():
-                self.idDict[Id_int] = row
-                for j in range(3):
-                    self.mainMessageTableWidget.item(row, j).setBackground(QColor(52, 44, 124))
+            if Id_int not in self.id2Row.keys():
+                self.id2Row[Id_int] = row
+                self.mainMessageTableWidget.item(row, colID).setBackground(highlightNewIdColor)
 
-
-        isFamiliar = False
+        knownID = False
         if Id_int in self.idLabelDict.keys():
+            knownID = True
             value = Id_str + " (" + self.idLabelDict[Id_int] + ")"
-            self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
-            isFamiliar = True
+            self.mainMessageTableWidget.setItem(row, colID, QTableWidgetItem(value))
 
-        colsNum = min(columnCount, 3)
-        if isFamiliar:
+        if knownID:
+            colsNum = min(columnCount, 3)
             for i in range(colsNum):
-                self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
+                self.mainMessageTableWidget.item(row, i).setBackground(knownIdColor)
 
         self.receivedPackets = self.receivedPackets + 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
 
-
+        # update NotSeen for all messages
+        if showNotSeenInsteadOfIDE and self.groupModeCheckBox.isChecked():
+            for row in range(self.mainMessageTableWidget.rowCount()):
+                msgId = self.row2Id[row]
+                notSeen = currTS - self.lastSeenTSDict[msgId]
+                notSeen = "{:.3f}".format(notSeen)
+                self.mainMessageTableWidget.setItem(row, colIDE, QTableWidgetItem(notSeen))
 
 def exception_hook(exctype, value, traceback):
     print(exctype, value, traceback)
@@ -568,7 +597,6 @@ def main():
     #starting the app
     darked_gui.show()
     app.exec_()
-
 
 if __name__ == "__main__":
     main()

@@ -12,7 +12,7 @@ ID   Descr             DLC     d0       d1       d2       d3       d4       d5  
 18A  Acc pedal          6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
 217  Speed              7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
 29A  Wheels speed       8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
-350  Car lock           8   ........ ........ ........ ........ ........ ........ ..LLRRL. ....rr..
+350  Car lock           8   ........ ........ ........ ........ ........ ........ ..LLRRC. ....rr..
 352  Brake              4   ........ ........ ........ BBBBBBBB
 3B7  Illumination       6   ........ .....III I....... ........ ........ ........
 4F8  Handbrake          8   ....HH.. ........ ........ ........ ........ ........ ........ ........
@@ -120,7 +120,7 @@ Descr: Car lock
 Source: 
 Dest: Cluster
 Length (DLC) = 8 Bytes
-........ ........ ........ ........ ........ ........ ..LLRRL. ....rr..
+........ ........ ........ ........ ........ ........ ..LLRRC. ....rr..
                                                         | | |      |rear Door (Left|Right|Trunk)
                                                         | | |      |01 - closed
                                                         | | |      |10 - open

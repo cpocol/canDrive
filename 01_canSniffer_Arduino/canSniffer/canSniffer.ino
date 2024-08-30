@@ -229,7 +229,7 @@ void setup() {
 //------------------------------------------------------------------------------
 // Main
 void loop() {
-  RXcallback();
+  RXcallback(); //gets message from Serial and sends it to CAN
 #if RANDOM_CAN == 1
   CANsimulate();
   delay(100);

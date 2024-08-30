@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31702.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "MyApp", "MyApp.pyproj", "{2BD8AA13-9B9F-4A21-84EE-7CB7621822AF}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "canSniffer_GUI", "canSniffer_GUI.pyproj", "{2BD8AA13-9B9F-4A21-84EE-7CB7621822AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
