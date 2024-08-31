@@ -1,11 +1,11 @@
-## References:\
+## References:
 (1) Adam's git https://github.com/adamtheone/canDrive \
 (2) https://canhacker.com/examples/renault-kaptur-can-bus/
 
 ## Map of reverse engineered bytes/bits (more details below):
 ```
 
-ID   Descr             DLC     d0       d1       d2       d3       d4       d5       d6       d7
+ID   Descr                               DLC     d0       d1       d2       d3       d4       d5       d6       d7
 ---------------------------------------------------------------------------------------------------
 12E  IMU                                  7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
 186  EngineRPM                            7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
@@ -377,7 +377,7 @@ Other derivable info:
 - Windows
 - Wipers
 
-## Message frequency, without turning ignition on (just opem the car)
+## Message frequency, without turning ignition on (just open the car)
 ```
 ID  (Label)                       msg/s
 ---------------------------------------
@@ -386,11 +386,11 @@ ID  (Label)                       msg/s
 242                                46.6
 354                                22.5
 352 (Brake)                        22.5
-5DE (Lights)                       10
+5DE (Lights)                       10.0
 5DF                                 9.8
 3B7 (Illumination)                  9.7
 4F8 (Handbrake)                     9.7
-55D (SpeedGear_CarLock_Headlights)	9.6
+55D (SpeedGear_CarLock_Headlights)  9.6
 666                                 9.3
 5D7                                 9.2
 350 (CarLock)                       7.7
