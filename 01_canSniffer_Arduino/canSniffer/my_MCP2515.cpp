@@ -3,7 +3,7 @@
 
 #ifndef ARDUINO_ARCH_ESP32
 
-#include "MCP2515.h"
+#include "my_MCP2515.h"
 
 #define REG_BFPCTRL                0x0c
 #define REG_TXRTSCTRL              0x0d

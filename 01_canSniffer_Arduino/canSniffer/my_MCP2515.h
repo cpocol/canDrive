@@ -8,7 +8,7 @@
 
 #include <SPI.h>
 
-#include "CANController.h"
+#include "my_CANController.h"
 
 #define MCP2515_DEFAULT_CLOCK_FREQUENCY 8e6
 

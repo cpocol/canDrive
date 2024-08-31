@@ -18,7 +18,7 @@
 //        - MCP2515.h: 16e6 clock frequency reduced to 8e6 (depending on MCP2515 clock)
 //        - MCP2515.cpp: extend CNF_MAPPER with your desired CAN speeds
 //------------------------------------------------------------------------------
-#include <CAN.h>
+#include "my_CAN.h"
 //------------------------------------------------------------------------------
 // Settings
 #define RANDOM_CAN 0
