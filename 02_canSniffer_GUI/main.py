@@ -221,7 +221,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.playbackMainTable1Packet()
 
     def clearTableCallback(self):
-        self.id2Row.clear()
+        self.id2Row = dict([])
+        self.frequencyCntDict = dict([])
+        self.frequencyTSDict = dict([])
+        self.lastSeenTSDict = dict([])
+        self.row2Id = dict([])
         self.mainMessageTableWidget.setRowCount(0)
 
     def sendDecodedPacketCallback(self):
@@ -538,7 +542,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                         self.frequencyTSDict[Id_int] = currTS
                         freq = 1
                     else:
-                        if currTS - self.frequencyTSDict[Id_int] > 1000: # reset
+                        if currTS - self.frequencyTSDict[Id_int] > 200: # reset
                             self.frequencyCntDict[Id_int] = 1
                             self.frequencyTSDict[Id_int] = currTS
                             freq = 1
