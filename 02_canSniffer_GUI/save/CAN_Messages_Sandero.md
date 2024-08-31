@@ -58,7 +58,7 @@ LLLLLLLL llllllll llllllll ........ ........ ........ ........
 
 ===========================================================================================================================
 186
-Descr: Ignition
+Descr: EngineRPM
 Source: 
 Dest:
 Length (DLC) = 7 Bytes
@@ -71,7 +71,7 @@ RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
 
 
 ===========================================================================================================================
-18A Accelarator pedal
+18A Accelaration pedal
 Descr: 
 Source: 
 Dest: 
@@ -198,7 +198,7 @@ Length (DLC) = 8 Bytes
 
 ===========================================================================================================================
 55D
-Descr: Headlights, Windshield washer
+Descr: Speed gear, Car lock, Headlights
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
@@ -277,7 +277,7 @@ Length (DLC) = 4 Bytes
 
 ===========================================================================================================================
 743
-Descr: Ask Odo data via OBD \ UDS protocol
+Descr: Odo request via OBD \ UDS protocol
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
@@ -291,7 +291,7 @@ Length (DLC) = 8 Bytes
 
 ===========================================================================================================================
 763 (743 + 20)
-Descr: Odo data response to 743
+Descr: Odo response to 743
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
@@ -364,7 +364,7 @@ Seems not doable, yet:
 
 Not Doable:
 - AC
-- Average speed, average fuel consumption, instantaneous fuel consumtion, etc
+- Average speed, average fuel consumption, instantaneous fuel consumption, etc
 - Cluster screen change
 - Clutch pedal
 - Defrost
