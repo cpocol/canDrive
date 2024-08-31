@@ -28,7 +28,7 @@ showNotSeenInsteadOfIDE = True
 
 
 #preferredComPort = None
-preferredComPort = "COM10"
+preferredComPort = "COM14"
 
 #autoConnect = False
 autoConnect = True
@@ -121,13 +121,13 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if not os.path.exists("save"):
             os.makedirs("save")
 
+        self.mainMessageTableWidget.setColumnWidth(colTS, 95)
+        self.mainMessageTableWidget.setColumnWidth(colID, 500)
+        self.mainMessageTableWidget.setColumnWidth(colRTR, 90)
+        self.mainMessageTableWidget.setColumnWidth(colIDE, 80)
+        self.mainMessageTableWidget.setColumnWidth(colDLC, 50)
         for i in range(colD0, self.mainMessageTableWidget.columnCount()):
             self.mainMessageTableWidget.setColumnWidth(i, 32)
-        for i in range(5, self.decodedMessagesTableWidget.columnCount()):
-            self.decodedMessagesTableWidget.setColumnWidth(i, 32)
-        self.mainMessageTableWidget.setColumnWidth(colID, 250)
-        self.decodedMessagesTableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.txTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.showFullScreen()
 
         if showFrequencyInsteadOfRTR:
@@ -137,6 +137,20 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if showNotSeenInsteadOfIDE and self.groupModeCheckBox.isChecked():
             newItem = QTableWidgetItem("NotSeen")
             self.mainMessageTableWidget.setHorizontalHeaderItem(colIDE, newItem)
+
+        self.decodedMessagesTableWidget.setColumnWidth(0, 500)
+        self.decodedMessagesTableWidget.setColumnWidth(1, 70)
+        self.decodedMessagesTableWidget.setColumnWidth(2, 50)
+        self.decodedMessagesTableWidget.setColumnWidth(3, 50)
+        self.decodedMessagesTableWidget.setColumnWidth(4, 50)
+        for i in range(5, self.decodedMessagesTableWidget.columnCount()):
+            self.decodedMessagesTableWidget.setColumnWidth(i, 32)
+        #self.decodedMessagesTableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+
+        self.idLabelDictTable.setColumnWidth(0, 70)
+        self.idLabelDictTable.setColumnWidth(1, 500)
+        
+        self.txTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
 
         if autoStartSniffing:
             self.serialPortConnect()
