@@ -44,7 +44,8 @@ colTS, colID, colRTR, colIDE, colDLC, colD0 = range(6)
 
 highlightNewIdColor = QColor(52, 44, 124)
 highlightNewDataColor = QColor(104, 37, 98)
-knownIdColor = QColor(53, 81, 52)
+highlightKnownIdColor = QColor(53, 81, 52)
+dlcTextColor = QColor(100, 100, 100)
 
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
@@ -551,6 +552,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                             freq = self.frequencyCntDict[Id_int] / (currTS - self.frequencyTSDict[Id_int])
                     data = "{:.1f}".format(freq)
                 newItem = QTableWidgetItem(data)
+                if uiCol == colDLC:
+                    newItem.setForeground(dlcTextColor);
                 if highlight:
                     item = self.mainMessageTableWidget.item(row, uiCol)
                     if item:
@@ -574,7 +577,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if knownID:
             colsNum = min(columnCount, 3)
             for i in range(colsNum):
-                self.mainMessageTableWidget.item(row, i).setBackground(knownIdColor)
+                self.mainMessageTableWidget.item(row, i).setBackground(highlightKnownIdColor)
 
         self.receivedPackets = self.receivedPackets + 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
