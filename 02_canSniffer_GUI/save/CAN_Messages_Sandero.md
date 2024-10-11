@@ -2,28 +2,29 @@
 (1) Adam's git https://github.com/adamtheone/canDrive \
 (2) https://canhacker.com/examples/renault-kaptur-can-bus/
 
+![Snapshot](/Snapshot.png)
 ## Map of reverse engineered bytes/bits (more details below):
 ```
 
-ID   Descr                               DLC     d0       d1       d2       d3       d4       d5       d6       d7
+ID(hex) Descr                                         DLC     d0       d1       d2       d3       d4       d5       d6       d7
 ---------------------------------------------------------------------------------------------------
-12E  IMU                                  7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
-186  EngineRPM                            7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
-18A  Accelaration pedal                   6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
-217  Speed                                7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
-29A  Wheels speed                         8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
-350  Car lock                             8   ........ ........ ........ ........ ........ ........ ..LLRRC. ....rr..
-352  Brake                                4   ........ ........ ........ BBBBBBBB
-3B7  Illumination                         6   ........ .....III I....... ........ ........ ........
-4F8  Handbrake                            8   ....HH.. ........ ........ ........ ........ ........ ........ ........
-55D  Speed gear, Car lock, Headlights     8   ........ ...RRR.. ........ ........ ......LL .HH..... ........ ........
-5DA  Engine Temperature                   8   TTTTTTTT ........ ........ ........ ........ ........ ........ ........
-5DE  Lights                               8   .TTFFPLH ....L.R. .r...... ........ ........ ........ ........ ........
-653  Seatbelt                             4   ........ .B...... ........ ........
-743  Odo request                          8   ........ ........ ........ AAAAAAAA ........ ........ ........ ........
-763  Odo response                         8   ........ ........ ........ ........ OOOOOOOO OOOOOOOO OOOOOOOO ........
-7DF  OBD Request                          3         02       01      PID
-7E8  OBD Response                      >= 3         41      PID       d1       d2 ...
+   12E  IMU                                            7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
+   186  EngineRPM                                      7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
+   18A  Accelaration pedal                             6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
+   217  Speed                                          7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
+   29A  Wheels speed                                   8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
+   350  Car lock, Ignition, Brake status, Doors        8   ........ ........ ........ ........ ........ .BBB.... ..LLRRC. ....rr..
+   352  Brake pedal                                    4   ........ ........ ........ BBBBBBBB
+   3B7  Illumination                                   6   ........ .....III I....... ........ ........ ........
+   4F8  Handbrake                                      8   ....HH.. ........ ........ ........ ........ ........ ........ ........
+   55D  Speed gear, Car lock, Headlights               8   ........ ...RRR.. ........ ........ ......LL .HH..... ........ ........
+   5DA  Engine Temperature                             8   TTTTTTTT ........ ........ ........ ........ ........ ........ ........
+   5DE  Lights (turn signal, fog, parking, headlights), Doors   8   .TTFFPLH ....L.R. .r...... ........ ........ ........ ........ ........
+   653  Seatbelt                                       4   ........ .B...... ........ ........
+   743  Odo request                                    8   ........ ........ ........ AAAAAAAA ........ ........ ........ ........
+   763  Odo response                                   8   ........ ........ ........ ........ OOOOOOOO OOOOOOOO OOOOOOOO ........
+   7DF  OBD Request                                    3         02       01      PID
+   7E8  OBD Response                                >= 3         41      PID       d1       d2 ...
 
 ```
 
@@ -78,7 +79,7 @@ Dest:
 Length (DLC) = 6 Bytes
 ........ ........ TTTTTTTT TTTTTTTT ........ ........
                   |Accelerator pedal
-                  |d2 is from 0 to 0xC8; d3 is for even more precision
+                  |d2 is from 0 to 200 (0xC8); d3 is for even more precision
 
 
 ===========================================================================================================================
@@ -116,26 +117,34 @@ RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
 
 ===========================================================================================================================
 350
-Descr: Car lock
+Descr: Car lock, Ignition, Brake status, Doors
 Source: 
 Dest: Cluster
 Length (DLC) = 8 Bytes
-........ ........ ........ ........ ........ ........ ..LLRRC. ....rr..
-                                                        | | |      |rear Door (Left|Right|Trunk)
-                                                        | | |      |01 - closed
-                                                        | | |      |10 - open
-                                                        | | |Car locked/unlocked
-                                                        | | |1 - Locked
-                                                        | | |0 - Unlocked
-                                                        | | -------------
-                                                        | |Front Right Door
-                                                        | |01 - closed
-                                                        | |10 - open
-                                                        | ----------
-                                                        |Flont Left Door
-                                                        |01 - closed
-                                                        |10 - open
-                                                        ------------------
+........ ........ ........ ........ ........ .BBB.... ..LLRRC. ....rr..
+                                             ||         | | |      |rear Door (Left|Right|Trunk)
+                                             ||         | | |      |01 - closed
+                                             ||         | | |      |10 - open
+                                             ||         | | |Car locked/unlocked
+                                             ||         | | |1 - Locked
+                                             ||         | | |0 - Unlocked
+                                             ||         | | -------------
+                                             ||         | |Front Right Door
+                                             ||         | |01 - closed
+                                             ||         | |10 - open
+                                             ||         | ----------
+                                             ||         |Flont Left Door
+                                             ||         |01 - closed
+                                             ||         |10 - open
+                                             ||         ------------------
+                                             ||Brake status, when key in ignition position                      D3 in 0x352 is tightly related
+                                             ||001 brake pedal is slightly pressed or not pressed at all        D3 in 0x352 is 0
+                                             ||010 brake pedal is pressed a little more                         D3 in 0x352 is 1
+                                             ||100 brake pedal is pressed even more; the brake lights turn on   D3 in 0x352 is at least 1
+                                             |---------------------------------------------------
+                                             |Ignition: turns into 1 like 2-4 seconds after the key gets into ignition position 
+                                             |          turns into 0 immediately after the key gets back from ignition position
+                                             ----------------------------------------------------------------------------------
 
 (2) For cluster ON send:
 ID=0x350 DLC=8 DATA=FF 00 00 00 00 00 00 00
@@ -143,7 +152,7 @@ Turns on for a very short period of time. It blinks even when sent periodically 
 
 
 ===========================================================================================================================
-352 Brake
+352 Brake pedal
 Descr: 
 Source: 
 Dest: 
@@ -233,7 +242,7 @@ TTTTTTTT ........ ........ ........ ........ ........ ........ ........
 
 ===========================================================================================================================
 5DE
-Descr: Lights: Turn signal lights, fog lights, head lights, doors
+Descr: Lights (turn signal, fog, parking, headlights), Doors
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
@@ -327,6 +336,7 @@ Length (DLC) >= 3 (depends on the current PID)
 - Doors (350, 5DE)
 - Engine RPM (186)
 - Engine temperature (5DA)
+- Ignition (350)
 - Handbrake (4F8)
 - Lateral acceleration (12E)
 - Lights
@@ -337,6 +347,7 @@ Length (DLC) >= 3 (depends on the current PID)
     - Parking lights (5DE)
     - Rear lights (55D)
     - Turn signal/hazard warning lights (5DE)
+    - Brake lights (350)
 - Pedals
     - Accelerator (18A)
     - Brake (352)

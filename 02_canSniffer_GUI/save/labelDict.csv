@@ -3,13 +3,13 @@
 18A,AccelarationPedal
 217,Speed
 29A,WheelsSpeed
-350,CarLock
-352,Brake
+350,CarLock_Ignition_Brake_status_Doors
+352,BrakePedal
 3B7,Illumination
 4F8,Handbrake
 55D,SpeedGear_CarLock_Headlights
 5DA,EngineTemperature
-5DE,Lights
+5DE,Lights_Doors
 653,Seatbelt
 743,OdoRequest
 763,OResponseTo743
