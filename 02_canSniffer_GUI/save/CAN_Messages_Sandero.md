@@ -5,17 +5,17 @@
 ## Map of reverse engineered bytes/bits (more details below):
 ```
 
-ID(hex) Descr                                         DLC     d0       d1       d2       d3       d4       d5       d6       d7
+ID(hex) Descr                                   DLC     d0       d1       d2       d3       d4       d5       d6       d7
 ---------------------------------------------------------------------------------------------------
    12E  IMU                                      7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
    186  EngineRPM                                7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
    18A  Accelaration pedal                       6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
    217  Speed                                    7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
    29A  Wheels speed                             8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
-   350  Car lock, Ignition, Brake status, Doors  8   ........ ........ ........ ........ ........ .BBB.... ..LLRRC. ....rr..
+   350  Car lock, Brake status, Doors            8   ........ ........ ........ ........ ........ iBBB.... ..LLRRC. ....rr..
    352  Brake pedal                              4   ........ ........ ........ BBBBBBBB
    3B7  Illumination                             6   ........ .....III I....... ........ ........ ........
-   4F8  Handbrake                                8   ....HH.. ........ ........ ........ ........ ........ ........ ........
+   4F8  Handbrake, Key                           8   XI.DHH.. ........ ........ ........ ........ ........ ........ ........
    55D  Speed gear, Car lock, Headlights         8   ........ ...RRR.. ........ ........ ......LL .HH..... ........ ........
    5DA  Engine Temperature                       8   TTTTTTTT ........ ........ ........ ........ ........ ........ ........
    5DE  Lights (turn signal, fog, parking        8   .TTFFPLH ....L.R. .r...... ........ ........ ........ ........ ........
@@ -117,11 +117,11 @@ RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
 
 ===========================================================================================================================
 350
-Descr: Car lock, Ignition, Brake status, Doors
+Descr: Car lock, Brake status, Doors
 Source: 
 Dest: Cluster
 Length (DLC) = 8 Bytes
-........ ........ ........ ........ ........ .BBB.... ..LLRRC. ....rr..
+........ ........ ........ ........ ........ iBBB.... ..LLRRC. ....rr..
                                              ||         | | |      |rear Door (Left|Right|Trunk)
                                              ||         | | |      |01 - closed
                                              ||         | | |      |10 - open
@@ -142,8 +142,8 @@ Length (DLC) = 8 Bytes
                                              ||010 brake pedal is pressed a little more                         D3 in 0x352 is 1
                                              ||100 brake pedal is pressed even more; the brake lights turn on   D3 in 0x352 is at least 1
                                              |---------------------------------------------------
-                                             |Ignition: turns into 1 like 2-4 seconds after the key gets into ignition position 
-                                             |          turns into 0 immediately after the key gets back from ignition position
+                                             |Ignition?: turns into 1 like 2-4 seconds after the key gets into ignition position 
+                                             |           turns into 0 immediately after the key gets back from ignition position
                                              ----------------------------------------------------------------------------------
 
 (2) For cluster ON send:
@@ -194,15 +194,25 @@ First byte PRNDL
 
 ===========================================================================================================================
 4F8
-Descr: Handbrake
+Descr: Handbrake, Key
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
-....HH.. ........ ........ ........ ........ ........ ........ ........
-    |Handbrake
-    |01 - Off
-    |10 - On
-    --------
+XI.DHH.. ........ ........ ........ ........ ........ ........ ........
+|| | |Handbrake
+|| | |01 - Off
+|| | |10 - On
+|| | --------
+|| |Immediate/delayed value. Note that: Ignition and Off/Accesories can't be simultaniously on
+|| |When ignition on: 0 - immediate
+|| |                  1 - delayed 1"
+|| |When Off/Acc. on: 1 - immediate
+|| |                  0 - delayed 12"
+|| ----------------------------------
+||Ignition
+|---------
+|Off/Accesories
+---------------
 
 
 ===========================================================================================================================
