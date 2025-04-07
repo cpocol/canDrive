@@ -450,6 +450,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.snifferMsgPlainTextEdit.document().setPlainText(packet)
             return
 
+        print(packet)
         rowData = [str(time - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # ID, RTR, EXT
         DLCx2 = len(packetSplit[3])

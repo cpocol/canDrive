@@ -17,6 +17,28 @@
 // Required modifications: 
 //        - MCP2515.h: 16e6 clock frequency reduced to 8e6 (depending on MCP2515 clock)
 //        - MCP2515.cpp: extend CNF_MAPPER with your desired CAN speeds
+
+////////////////////////////////  OLED  ///////////////////////////////////////////////////////////////////////////
+#define USE_DISPLAY 1
+
+#if USE_DISPLAY == 1
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+#include <Wire.h>
+#include "my_Adafruit_SSD1306.h"
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+uint8_t displayBuffer[SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8)];
+
+char str[50];
+#endif
+
+int engineTemperature = -41; //not valid, yet
+int engineSpeed = -1; //not valid, yet
+
+////////////////////////////////  CAN  ///////////////////////////////////////////////////////////////////////////
+
 //------------------------------------------------------------------------------
 #include "my_CAN.h"
 //------------------------------------------------------------------------------
@@ -56,6 +78,7 @@ typedef struct {
 const char SEPARATOR = ',';
 const char TERMINATOR = '\n';
 const char RXBUF_LEN = 100;
+
 //------------------------------------------------------------------------------
 // Printing a packet to serial
 void printHex(long num) {
@@ -118,6 +141,15 @@ void onCANReceive(int packetSize) {
       break;
     }
   }
+
+  if (rxPacket.id == 0x5DA) {
+    engineTemperature = rxPacket.dataArray[0] - 40;
+  }
+
+  if (rxPacket.id == 0x186) {
+    engineSpeed = ((int)256 * rxPacket.dataArray[0] + rxPacket.dataArray[1]) / 4;
+  }
+
   printPacket(&rxPacket);
 }
 
@@ -214,24 +246,94 @@ void setup() {
 
 #if RANDOM_CAN == 1
   randomSeed(12345);
-  Serial.println("randomCAN Started");
+  Serial.println(F("randomCAN Started"));
 #else
-  Serial.println(CAN_SPEED);
+  //Serial.println(CAN_SPEED);
   if (!CAN.begin(CAN_SPEED)) {
-    Serial.println("Starting CAN failed!");
+    Serial.println(F("Starting CAN failed!"));
     while (1);
   }
   // register the receive callback
   CAN.onReceive(onCANReceive);
-  Serial.println("CAN RX TX Started");
+  Serial.println(F("CAN RX TX Started"));
+#endif
+
+#if USE_DISPLAY == 1
+  display.setExternalBuffer(displayBuffer);
+  if(!display.begin())
+    Serial.println(F("!SSD1306"));
+
+  display.setTextColor(SSD1306_WHITE);
+  display.cp437(true);         // Use full 256 char 'Code Page 437' font
+  display.setTextWrap(false);
+
+  display.clearDisplay();
+
+  display.setCursor(0, 0);
+  display.write("01_canSniffer_Arduino");
+
+  display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
+
+  display.display();
 #endif
 }
 //------------------------------------------------------------------------------
 // Main
 void loop() {
+#if USE_DISPLAY == 1
+    display.clearDisplay();
+
+    display.setCursor(0, 0);
+    display.write("01_canSniffer_Arduino");
+
+    display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
+
+    bool refreshDisplay = false;
+#endif
+
   RXcallback(); //gets message from Serial and sends it to CAN
 #if RANDOM_CAN == 1
   CANsimulate();
   delay(100);
+#else
+  static int lastEngineTemperature = -41; //not valid yet
+  if (engineTemperature != lastEngineTemperature) {
+    lastEngineTemperature = engineTemperature;
+    Serial.print(F("Engine temperature: "));
+    Serial.println(engineTemperature);
+
+#if USE_DISPLAY == 1
+    sprintf(str, "Eng. temperature: %2d%c", engineTemperature, 248);
+    display.setCursor(0, 14);
+    display.write(str);
+    refreshDisplay = true;
+#endif
+  }
+
+  static int lastEngineSpeed = -1; //not valid yet
+  if (engineSpeed != lastEngineSpeed) {
+    lastEngineSpeed = engineSpeed;
+    Serial.print(F("Engine speed: "));
+    Serial.println(engineSpeed);
+
+#if USE_DISPLAY == 1
+    refreshDisplay = true;
+#endif
+  }
+
+#if USE_DISPLAY == 1
+  if (refreshDisplay)
+  {
+    sprintf(str, "Eng. speed: %4d rpm", engineSpeed);
+    display.setCursor(0, 24);
+    display.write(str);
+  }
+#endif
+
+#endif //RANDOM_CAN == 1
+
+#if USE_DISPLAY == 1
+  if (refreshDisplay)
+    display.display();
 #endif
 }
