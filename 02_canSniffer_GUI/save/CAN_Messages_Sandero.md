@@ -9,7 +9,7 @@ ID(hex) Descr                                   DLC     d0       d1       d2    
 ---------------------------------------------------------------------------------------------------
    12E  IMU                                      7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
    186  EngineRPM                                7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
-   18A  Accelaration pedal                       6   ........ ........ TTTTTTTT TTTTTTTT ........ ........
+   18A  Acceleration pedal                       6   ........ ........ PPPPPPPP PPPPPPPP ........ ........
    217  Speed                                    7   ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
    29A  Wheels speed                             8   RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
    350  Car lock, Brake status, Doors            8   ........ ........ ........ ........ ........ iBBB.... ..LLRRC. ....rr..
@@ -72,12 +72,12 @@ RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
 
 
 ===========================================================================================================================
-18A Accelaration pedal
+18A Acceleration pedal
 Descr: 
 Source: 
 Dest: 
 Length (DLC) = 6 Bytes
-........ ........ TTTTTTTT TTTTTTTT ........ ........
+........ ........ PPPPPPPP PPPPPPPP ........ ........
                   |Accelerator pedal
                   |d2 is from 0 to 200 (0xC8); d3 is for even more precision
 
@@ -203,7 +203,7 @@ XI.DHH.. ........ ........ ........ ........ ........ ........ ........
 || | |01 - Off
 || | |10 - On
 || | --------
-|| |Immediate/delayed value. Note that: Ignition and Off/Accesories can't be simultaniously on
+|| |Immediate/delayed value. Note that: Ignition and Off/Accessories can't be simultaneously on
 || |When ignition on: 0 - immediate
 || |                  1 - delayed 1"
 || |When Off/Acc. on: 1 - immediate
@@ -211,7 +211,7 @@ XI.DHH.. ........ ........ ........ ........ ........ ........ ........
 || ----------------------------------
 ||Ignition
 |---------
-|Off/Accesories
+|Off/Accessories
 ---------------
 
 
