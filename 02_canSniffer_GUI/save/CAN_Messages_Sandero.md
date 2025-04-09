@@ -6,7 +6,7 @@
 ```
 
 ID(hex) Descr                                   DLC     d0       d1       d2       d3       d4       d5       d6       d7
----------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
    12E  IMU                                      7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
    186  EngineRPM                                7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
    18A  Acceleration pedal                       6   ........ ........ PPPPPPPP PPPPPPPP ........ ........
@@ -49,9 +49,9 @@ Source:
 Dest: 
 Length (DLC) = 7 Bytes
 LLLLLLLL llllllll llllllll ........ ........ ........ ........
-         |Lateral acceleration
-         |sin((d1d2 - 32768) * 0.243) G (positive when the car turns to the left <=> the lateral acceleration vector points to the right)
-         --------------------------------------------------------------------------------------------------------------------------------
+|        |Lateral acceleration
+|        |sin((d1d2 - 32768) * 0.243) G (positive when the car turns to the left <=> the lateral acceleration vector points to the right)
+|        --------------------------------------------------------------------------------------------------------------------------------
 |Longitudinal acceleration
 |sin((d0 - 4204) * 0.366) G (positive when the car decelerates <=> the longitudinal acceleration vector points forward)
 --------------------------------------------------------------------------------------------------------------------------
@@ -80,6 +80,7 @@ Length (DLC) = 6 Bytes
 ........ ........ PPPPPPPP PPPPPPPP ........ ........
                   |Accelerator pedal
                   |d2 is from 0 to 200 (0xC8); d3 is for even more precision
+				  ----------------------------------------------------------
 
 
 ===========================================================================================================================
@@ -91,6 +92,7 @@ Length (DLC) = 7 Bytes
 ........ ........ ........ SSSSSSSS SSSSSSSS ........ ........
                            |Speed
                            |(d3 * 255 + d4) * 0.006274 Km/h
+						   --------------------------------
 
 (2)
 
@@ -104,15 +106,15 @@ Length (DLC) = 8 Bytes
 RRRRRRRR RRRRRRRR LLLLLLLL LLLLLLLL SSSSSSSS SSSSSSSS 0000dddd ssssdddd
 |                 |                 |                     |don't know
 |                 |                 |                     |keep changing while standing still; ssss = F when standing
-|                 |                 |                     ----------------------------------
+|                 |                 |                     -----------------------------------------------------------
 |                 |                 |Some sort of speed; varies like the others; it's 47% of the other speeds
-|                 |                 -------------------------------------------
+|                 |                 -------------------------------------------------------------------------
 |                 |Front left wheel speed
 |                 |(d2 * 255 + d3) * 0.006274 Km/h
-|                 --------------
+|                 --------------------------------
 |Front right wheel speed
 |(d0 * 255 + d1) * 0.006274 Km/h
---------------
+--------------------------------
 
 
 ===========================================================================================================================
@@ -141,7 +143,7 @@ Length (DLC) = 8 Bytes
                                              ||001 brake pedal is slightly pressed or not pressed at all        D3 in 0x352 is 0
                                              ||010 brake pedal is pressed a little more                         D3 in 0x352 is 1
                                              ||100 brake pedal is pressed even more; the brake lights turn on   D3 in 0x352 is at least 1
-                                             |---------------------------------------------------
+                                             |-------------------------------------------------------------------------------------------
                                              |Ignition?: turns into 1 like 2-4 seconds after the key gets into ignition position 
                                              |           turns into 0 immediately after the key gets back from ignition position
                                              ----------------------------------------------------------------------------------
@@ -212,7 +214,7 @@ XI.DHH.. ........ ........ ........ ........ ........ ........ ........
 ||Ignition
 |---------
 |Off/Accessories
----------------
+----------------
 
 
 ===========================================================================================================================
@@ -278,7 +280,7 @@ Length (DLC) = 8 Bytes
  |01 Left
  |10 Right
  |11 Both - Hazard warning
- ----------------------
+ -------------------------
 
 
 ===========================================================================================================================
@@ -317,23 +319,146 @@ Length (DLC) = 8 Bytes
 ........ ........ ........ ........ OOOOOOOO OOOOOOOO OOOOOOOO ........
                                     |Odo
                                     |(d4 * 255 + d5) * 255 + d6
-                                    -------------
+                                    ---------------------------
 
 ===========================================================================================================================
 7DF
-Descr: OBD parameter request (https://www.csselectronics.com/pages/obd-ii-pid-examples)
-Source: 
-Dest: 
-Length (DLC) = 3 Bytes
-7DF000008 02 01 PID 55 55 55 55 55
+Descr: OBD request
+Source: TESTER
+Dest: CAR
+
+Documentation available at https://en.wikipedia.org/wiki/OBD-II_PIDs
+but here are some real examples.
+
+(example of) real request (aka query):
+ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
+-------------------------------
+7DF 8   02 01 0C
+        |  |  |PID code:
+        |  |  |00 = PIDs supported [$01 - $20]
+        |  |  |04 = Calculated engine load
+        |  |  |05 = Engine coolant temperature
+        |  |  |0C = Engine speed <-----
+        |  |  |0D = Vehicle speed
+        |  |  |20 = PIDs supported [$21 - $40]
+        |  |  --------------------------------
+        |  |Service/Mode; 1 = show current data
+        |  ------------------------------------
+        |Number of additional data bytes
+        --------------------------------
 
 ===========================================================================================================================
 7E8
-Descr: OBD parameter response
-Source: 
-Dest: 
-Length (DLC) >= 3 (depends on the current PID)
-41 PID d1 d2 ...
+Descr: OBD response
+Source: CAR
+Dest: TESTER
+
+(example of) real response for PIDs supported [$01 - $20]:
+ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
+7E8 8   06 41 00 BE 3E B8 11
+0xBE3EB811 = 10111110 00111110 10111000 00010001
+             | |||||    |||||  | |||       |   |PIDs supported [$21 - $40]
+             | |||||    |||||  | |||       |   --------------------------------------------
+             | |||||    |||||  | |||       |OBD standards this vehicle conforms to
+             | |||||    |||||  | |||       --------------------------------------------
+             | |||||    |||||  | |||Oxygen Sensor 2 A: Voltage B: Short term fuel trim
+             | |||||    |||||  | ||---------------------------------------------------
+             | |||||    |||||  | ||Oxygen Sensor 1 A: Voltage B: Short term fuel trim
+             | |||||    |||||  | |---------------------------------------------------
+             | |||||    |||||  | |Oxygen sensors present (in 2 banks)
+             | |||||    |||||  | ------------------------------------
+             | |||||    |||||  |Throttle position
+             | |||||    |||||  ------------------
+             | |||||    |||||Intake air temperature
+             | |||||    ||||-----------------------
+             | |||||    ||||Timing advance
+             | |||||    |||---------------
+             | |||||    |||Vehicle speed
+             | |||||    ||--------------
+             | |||||    ||Engine speed
+             | |||||    |-------------
+             | |||||    |Intake manifold absolute pressure
+             | |||||    ----------------------------------
+             | |||||Long term fuel trim (LTFT)—Bank 1
+             | ||||----------------------------------
+             | ||||Short term fuel trim (STFT)—Bank 1
+             | |||-----------------------------------
+             | |||Engine coolant temperature	
+             | ||---------------------------
+             | ||Calculated engine load
+             | |-----------------------
+             | |Fuel system status	
+             | -------------------
+             |Monitor status since DTCs cleared
+             ----------------------------------
+
+(example of) real response for PIDs supported [$21 - $40]:
+ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
+-------------------------------
+7E8 8   06 41 20 A0 01 80 01
+0xA0018001 = 10100000 00000001 10000000 00000001
+             | |             | |               |PIDs supported [$41 - $60]
+             | |             | |               ---------------------------
+             | |             | |Distance traveled since codes cleared
+             | |             | --------------------------------------
+             | |             |Warm-ups since codes cleared
+             | |             -----------------------------
+             | |Fuel Rail Gauge Pressure (diesel, or gasoline direct injection)
+             | ----------------------------------------------------------------
+             |Distance traveled with malfunction indicator lamp (MIL) on
+			 -----------------------------------------------------------
+
+(example of) real response for PIDs supported [$41 - $60]:
+ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
+-------------------------------
+7E8 8   06 41 40 80 00 00 00
+0x80000000 = 10000000 00000000 00000000 00000000
+             |Monitor status this drive cycle
+			 --------------------------------
+
+===========================================================================================================================
+
+(example of) real OBD communication (TESTER = Torque app running on smart phone):
+Timestamp       Direction           ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
+-------------------------------------------------------------------
+14:37:01.294 -> From TESTER to CAR: 7DF 8   02 01 00 00 00 00 00 00 Request: PIDs supported [$01 - $20]
+14:37:01.294 -> From CAR to TESTER: 7E8 8   06 41 00 BE 3E B8 11 AA Response: PIDs supported [$01 - $20]
+										    
+14:37:01.786 -> From TESTER to CAR: 7DF 8   02 01 00 00 00 00 00 00 Request: PIDs supported [$01 - $20]
+14:37:01.823 -> From CAR to TESTER: 7E8 8   06 41 00 BE 3E B8 11 AA Response: PIDs supported [$01 - $20]
+										    
+14:37:02.245 -> From TESTER to CAR: 7DF 8   02 01 00 00 00 00 00 00 Request: PIDs supported [$01 - $20]
+14:37:02.245 -> From CAR to TESTER: 7E8 8   06 41 00 BE 3E B8 11 AA Response: PIDs supported [$01 - $20]
+										    
+14:37:02.652 -> From TESTER to CAR: 7DF 8   02 01 00 00 00 00 00 00 Request: PIDs supported [$01 - $20]
+14:37:02.698 -> From CAR to TESTER: 7E8 8   06 41 00 BE 3E B8 11 AA Response: PIDs supported [$01 - $20]
+										    
+14:37:03.133 -> From TESTER to CAR: 7DF 8   02 01 00 00 00 00 00 00 Request: PIDs supported [$01 - $20]
+14:37:03.133 -> From CAR to TESTER: 7E8 8   06 41 00 BE 3E B8 11 AA Response: PIDs supported [$01 - $20]
+										    
+14:37:03.212 -> From TESTER to CAR: 7DF 8   02 01 20 00 00 00 00 00 Request: PIDs supported [$21 - $40]
+14:37:03.260 -> From CAR to TESTER: 7E8 8   06 41 20 A0 01 80 01 AA Response: PIDs supported [$21 - $40]
+										    
+14:37:03.352 -> From TESTER to CAR: 7DF 8   02 01 40 00 00 00 00 00 Request: PIDs supported [$41 - $60]
+14:37:03.352 -> From CAR to TESTER: 7E8 8   06 41 40 80 00 00 00 AA Response: PIDs supported [$41 - $60]
+										    
+14:37:03.446 -> From TESTER to CAR: 7DF 8   02 01 05 00 00 00 00 00 Request: Engine coolant temperature
+14:37:03.446 -> From CAR to TESTER: 7E8 8   03 41 05 49 AA AA AA AA Response: Engine coolant temperature: 0x49 - 40 = 33 degrees
+										    
+14:37:03.480 -> From TESTER to CAR: 7DF 8   02 01 0B 00 00 00 00 00 Request: Intake manifold absolute pressure
+14:37:03.525 -> From CAR to TESTER: 7E8 8   03 41 0B 61 AA AA AA AA Response: Intake manifold absolute pressure: 97 kPa
+										    
+14:37:03.572 -> From TESTER to CAR: 7DF 8   02 01 10 00 00 00 00 00 Request: Mass air flow sensor (MAF) air flow rate
+                                                                    It's not supported! Why request it?
+										    
+14:37:04.024 -> From TESTER to CAR: 7DF 8   02 01 0C 00 00 00 00 00 Request: Engine speed
+14:37:04.024 -> From CAR to TESTER: 7E8 8   04 41 0C 00 00 AA AA AA Response: Engine speed: 0 rpm
+										    
+14:37:04.117 -> From TESTER to CAR: 7DF 8   02 01 04 00 00 00 00 00 Request: Calculated engine load
+14:37:04.117 -> From CAR to TESTER: 7E8 8   03 41 04 00 AA AA AA AA Response: Calculated engine load: 0%
+										    
+14:37:04.195 -> From TESTER to CAR: 7DF 8   02 01 33 00 00 00 00 00 Request: Absolute Barometric Pressure
+                                                                    It's not supported! Why request it?
 
 ```
 

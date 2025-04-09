@@ -38,17 +38,17 @@ void setup() {
 struct can_frame canMsgW;
 
 void loop() {
-///// temperature
-  static uint8_t temperature = 40 + 0; //subtract 40 for the real engine coolant temperature
-  temperature += 1;
-  if (temperature > 40 + 99) //0 might be reserved as invalid value
-    temperature = 40 + 0;
+///// Engine temperature
+  static uint8_t engineTemperature = 40 + 0; //subtract 40 for the real engine coolant temperature
+  engineTemperature += 1;
+  if (engineTemperature > 40 + 99) //0 might be reserved as invalid value
+    engineTemperature = 40 + 0;
 
-  Serial.print("Temperature: ");   Serial.println(int(temperature));
+  Serial.print("Engine temperature: ");   Serial.println(int(engineTemperature));
 
   canMsgW.can_id  = 0x5DA;
   canMsgW.can_dlc = 8;
-  canMsgW.data[0] = temperature;
+  canMsgW.data[0] = engineTemperature;
 
   mcp2515.sendMessage(&canMsgW);
 
@@ -79,7 +79,7 @@ void loop() {
 
   display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
 
-  sprintf(str, "Eng. temperature: %2d%c", temperature - 40, 248);
+  sprintf(str, "Eng. temperature: %2d%c", engineTemperature - 40, 248);
   display.setCursor(0, 14);
   display.write(str);
 

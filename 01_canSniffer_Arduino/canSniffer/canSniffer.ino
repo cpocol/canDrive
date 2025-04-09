@@ -281,14 +281,15 @@ void setup() {
 // Main
 void loop() {
 #if USE_DISPLAY == 1
-    display.clearDisplay();
+  //Serial.println(F("clear display"));
+  display.clearDisplay();
 
-    display.setCursor(0, 0);
-    display.write("01_canSniffer_Arduino");
+  display.setCursor(0, 0);
+  display.write("01_canSniffer_Arduino");
 
-    display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
+  display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
 
-    bool refreshDisplay = false;
+  bool refreshDisplay = false;
 #endif
 
   RXcallback(); //gets message from Serial and sends it to CAN
