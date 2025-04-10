@@ -23,4 +23,6 @@ Achievement of this fork:
 	- using the display might cause some CAN messages to be dropped
 
 5. Building a simple OBD car simulator
-	- implementation and showcase in https://github.com/cpocol/canDrive/blob/main/000_SimpleOBDCarSimulator_Arduino
+	- implementation in https://github.com/cpocol/canDrive/blob/main/000_SimpleOBDCarSimulator_Arduino
+
+![Snapshot](000_SimpleOBDCarSimulator_Arduino/Snapshot.gif)
