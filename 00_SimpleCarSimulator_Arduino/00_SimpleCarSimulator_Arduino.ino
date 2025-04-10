@@ -18,7 +18,7 @@ char str[50];
 
 void setup() {
   Serial.begin(250000);
-  Serial.println("setup -------------------------------");
+  Serial.println("setup");
 
   mcp2515.reset();
   mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);
@@ -55,8 +55,8 @@ void loop() {
   Serial.println("Temperature message sent");
 
 ///// engine speed
-  int32_t engineSpeedRaw = analogRead(PIN_POTENTIOMETER);
-  int engineSpeed = (engineSpeedRaw * 70 /100) * 10;
+  int16_t engineSpeedRaw = analogRead(PIN_POTENTIOMETER);
+  int16_t engineSpeed = engineSpeedRaw * 6; //upto 6000+ rpm
 
   Serial.print("Engine speed: ");   Serial.println(int(engineSpeed));
 
@@ -68,7 +68,7 @@ void loop() {
 
   mcp2515.sendMessage(&canMsgW);
 
-  Serial.println("Engine speed sent");
+  Serial.println("Engine speed message sent");
 
 /////////////// display ////////////////
 
