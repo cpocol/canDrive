@@ -18,24 +18,11 @@
 //        - MCP2515.h: 16e6 clock frequency reduced to 8e6 (depending on MCP2515 clock)
 //        - MCP2515.cpp: extend CNF_MAPPER with your desired CAN speeds
 
-////////////////////////////////  OLED  ///////////////////////////////////////////////////////////////////////////
-#define USE_DISPLAY 1
-
-#if USE_DISPLAY == 1
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-
-#include <Wire.h>
-#include "my_Adafruit_SSD1306.h"
-
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
-uint8_t displayBuffer[SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8)];
-
-char str[50];
-#endif
 
 int engineTemperature = -41; //not valid, yet
 int engineSpeed = -1; //not valid, yet
+
+uint16_t receivedMsgsps = 0;
 
 ////////////////////////////////  CAN  ///////////////////////////////////////////////////////////////////////////
 
@@ -150,6 +137,8 @@ void onCANReceive(int packetSize) {
     engineSpeed = ((int)256 * rxPacket.dataArray[0] + rxPacket.dataArray[1]) / 4;
   }
 
+  receivedMsgsps++;
+
   printPacket(&rxPacket);
 }
 
@@ -243,6 +232,7 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  Serial.println(F("01_canSniffer_Arduino started"));
 
 #if RANDOM_CAN == 1
   randomSeed(12345);
@@ -257,41 +247,10 @@ void setup() {
   CAN.onReceive(onCANReceive);
   Serial.println(F("CAN RX TX Started"));
 #endif
-
-#if USE_DISPLAY == 1
-  display.setExternalBuffer(displayBuffer);
-  if(!display.begin())
-    Serial.println(F("!SSD1306"));
-
-  display.setTextColor(SSD1306_WHITE);
-  display.cp437(true);         // Use full 256 char 'Code Page 437' font
-  display.setTextWrap(false);
-
-  display.clearDisplay();
-
-  display.setCursor(0, 0);
-  display.write("01_canSniffer_Arduino");
-
-  display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
-
-  display.display();
-#endif
 }
 //------------------------------------------------------------------------------
 // Main
 void loop() {
-#if USE_DISPLAY == 1
-  //Serial.println(F("clear display"));
-  display.clearDisplay();
-
-  display.setCursor(0, 0);
-  display.write("01_canSniffer_Arduino");
-
-  display.drawFastHLine(0, 10, SCREEN_WIDTH, SSD1306_WHITE);
-
-  bool refreshDisplay = false;
-#endif
-
   RXcallback(); //gets message from Serial and sends it to CAN
 #if RANDOM_CAN == 1
   CANsimulate();
@@ -302,13 +261,6 @@ void loop() {
     lastEngineTemperature = engineTemperature;
     Serial.print(F("Engine temperature: "));
     Serial.println(engineTemperature);
-
-#if USE_DISPLAY == 1
-    sprintf(str, "Eng. temperature: %2d%c", engineTemperature, 248);
-    display.setCursor(0, 14);
-    display.write(str);
-    refreshDisplay = true;
-#endif
   }
 
   static int lastEngineSpeed = -1; //not valid yet
@@ -316,25 +268,17 @@ void loop() {
     lastEngineSpeed = engineSpeed;
     Serial.print(F("Engine speed: "));
     Serial.println(engineSpeed);
-
-#if USE_DISPLAY == 1
-    refreshDisplay = true;
-#endif
   }
 
-#if USE_DISPLAY == 1
-  if (refreshDisplay)
+#endif //RANDOM_CAN == 0
+
+  // stats
+  static auto time = millis();
+  if (millis() - time > 1000)
   {
-    sprintf(str, "Eng. speed: %4d rpm", engineSpeed);
-    display.setCursor(0, 24);
-    display.write(str);
+      time = millis();
+      //Serial.print(F("msgps "));   Serial.println(receivedMsgsps); // !!! may crash 02_canSniffer_GUI !!!
+
+      receivedMsgsps = 0;
   }
-#endif
-
-#endif //RANDOM_CAN == 1
-
-#if USE_DISPLAY == 1
-  if (refreshDisplay)
-    display.display();
-#endif
 }
