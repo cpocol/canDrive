@@ -16,13 +16,8 @@ Achievement of this fork:
 	- it is based on Arduino (Nano)
 	- implementation in https://github.com/cpocol/canDrive/blob/main/00_SimpleCarSimulator_Arduino
 		- the reason why some source files have the "my_" prefix is to avoid messing up with libraries that may already be installed (they are copies of the needed installed libraries). Also, there is no such need as installing those libraries
-		
-4. Adding support for a display on the firmware from 01_canSniffer_Arduino
-	- if the display is missing, the corresponding implementation just does nothing
-	- the display can be disabled by setting USE_DISPLAY to 0
-	- using the display might cause some CAN messages to be dropped
 
-5. Building a simple OBD car simulator
+4. Building a simple OBD car simulator
 	- implementation in https://github.com/cpocol/canDrive/blob/main/000_SimpleOBDCarSimulator_Arduino
 
 ![Snapshot](000_SimpleOBDCarSimulator_Arduino/Snapshot.gif)

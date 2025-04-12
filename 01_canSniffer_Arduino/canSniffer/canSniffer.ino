@@ -69,7 +69,7 @@ const char RXBUF_LEN = 100;
 //------------------------------------------------------------------------------
 // Printing a packet to serial
 void printHex(long num) {
-  if ( num < 0x10 ){ Serial.print("0"); }
+  if (num < 0x10){ Serial.print("0"); }
   Serial.print(num, HEX);
 }
 
@@ -168,19 +168,19 @@ char getNum(char c) {
   return 0;
 }
 
-char * strToHex(char * str, byte * hexArray, byte * len) {
-  byte *ptr = hexArray;
-  char * idx;
-  for (idx = str ; *idx != SEPARATOR && *idx != TERMINATOR; ++idx, ++ptr ) {
-    *ptr = (getNum( *idx++ ) << 4) + getNum( *idx );
+char* strToHex(char* str, byte* hexArray, byte* len) {
+  byte* ptr = hexArray;
+  char* idx;
+  for (idx = str ; *idx != SEPARATOR && *idx != TERMINATOR; ++idx, ++ptr) {
+    *ptr = (getNum(*idx++) << 4) + getNum(*idx);
   }
   *len = ptr - hexArray;
   return idx;
 }
 
-void rxParse(char * buf, int len) {
+void rxParse(char* buf, int len) { //helper for RXcallback - gets message from Serial and sends it to CAN
   packet_t rxPacket;
-  char * ptr = buf;
+  char* ptr = buf;
   // All elements have to have leading zero!
 
   // ID
@@ -208,7 +208,7 @@ void rxParse(char * buf, int len) {
 #endif
 }
 
-void RXcallback(void) {
+void RXcallback(void) { //gets message from Serial and sends it to CAN
   static int rxPtr = 0;
   static char rxBuf[RXBUF_LEN];
 
@@ -269,7 +269,6 @@ void loop() {
     Serial.print(F("Engine speed: "));
     Serial.println(engineSpeed);
   }
-
 #endif //RANDOM_CAN == 0
 
   // stats
@@ -277,7 +276,9 @@ void loop() {
   if (millis() - time > 1000)
   {
       time = millis();
-      //Serial.print(F("msgps "));   Serial.println(receivedMsgsps); // !!! may crash 02_canSniffer_GUI !!!
+
+      // !!! may crash 02_canSniffer_GUI !!!
+      //Serial.print(F("msgps "));   Serial.println(receivedMsgsps);
 
       receivedMsgsps = 0;
   }
