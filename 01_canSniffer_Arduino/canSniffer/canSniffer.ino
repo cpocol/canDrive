@@ -19,9 +19,6 @@
 //        - MCP2515.cpp: extend CNF_MAPPER with your desired CAN speeds
 
 
-int engineTemperature = -41; //not valid, yet
-int engineSpeed = -1; //not valid, yet
-
 uint16_t receivedMsgsps = 0;
 
 ////////////////////////////////  CAN  ///////////////////////////////////////////////////////////////////////////
@@ -127,14 +124,6 @@ void onCANReceive(int packetSize) {
     if (i >= (sizeof(rxPacket.dataArray) / (sizeof(rxPacket.dataArray[0])))) {
       break;
     }
-  }
-
-  if (rxPacket.id == 0x5DA) {
-    engineTemperature = rxPacket.dataArray[0] - 40;
-  }
-
-  if (rxPacket.id == 0x186) {
-    engineSpeed = ((int)256 * rxPacket.dataArray[0] + rxPacket.dataArray[1]) / 4;
   }
 
   receivedMsgsps++;
@@ -243,7 +232,7 @@ void setup() {
     Serial.println(F("Starting CAN failed!"));
     while (1);
   }
-  // register the receive callback
+  // register the receive callback for the interrupt based method
   CAN.onReceive(onCANReceive);
   Serial.println(F("CAN RX TX Started"));
 #endif
@@ -252,24 +241,34 @@ void setup() {
 // Main
 void loop() {
   RXcallback(); //gets message from Serial and sends it to CAN
+
 #if RANDOM_CAN == 1
   CANsimulate();
   delay(100);
 #else
-  static int lastEngineTemperature = -41; //not valid yet
-  if (engineTemperature != lastEngineTemperature) {
-    lastEngineTemperature = engineTemperature;
-    Serial.print(F("Engine temperature: "));
-    Serial.println(engineTemperature);
-  }
+  //here's the polling based method (not the interrupt based one)
+  // int packetSize = CAN.parsePacket();
 
-  static int lastEngineSpeed = -1; //not valid yet
-  if (engineSpeed != lastEngineSpeed) {
-    lastEngineSpeed = engineSpeed;
-    Serial.print(F("Engine speed: "));
-    Serial.println(engineSpeed);
-  }
-#endif //RANDOM_CAN == 0
+  // if (packetSize || CAN.packetId() != -1) {
+  //   // received a CAN packet
+  //   packet_t rxPacket;
+  //   rxPacket.id = CAN.packetId();
+  //   rxPacket.rtr = CAN.packetRtr() ? 1 : 0;
+  //   rxPacket.ide = CAN.packetExtended() ? 1 : 0;
+  //   rxPacket.dlc = CAN.packetDlc();
+  //   byte i = 0;
+  //   while (CAN.available()) {
+  //     rxPacket.dataArray[i++] = CAN.read();
+  //     if (i >= (sizeof(rxPacket.dataArray) / (sizeof(rxPacket.dataArray[0])))) {
+  //       break;
+  //     }
+  //   }
+
+  //   receivedMsgsps++;
+
+  //   printPacket(&rxPacket);
+  // }
+#endif
 
   // stats
   static auto time = millis();
