@@ -272,8 +272,7 @@ void loop() {
 
   // stats
   static auto time = millis();
-  if (millis() - time > 1000)
-  {
+  if (millis() - time > 1000) {
       time = millis();
 
       // !!! may crash 02_canSniffer_GUI !!!

@@ -103,7 +103,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         self.scanPorts()
         self.startTime = 0
+        self.packageRateTime = 0
         self.receivedPackets = 0
+        self.receivedPacketsRate = 0
         self.playbackMainTableIndex = 0
         self.labelDictFile = None
 
@@ -432,6 +434,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.serialWriterThread.write(txBuf)
 
         self.startTime = time.time()
+        self.packageRateTime = time.time()
 
     def stopSniffing(self):
         self.startSniffingButton.setEnabled(True)
@@ -450,7 +453,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.snifferMsgPlainTextEdit.document().setPlainText(packet)
             return
 
-        print(packet)
+        #print(packet) may cause the GUI to choke
         rowData = [str(time - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # ID, RTR, EXT
         DLCx2 = len(packetSplit[3])
@@ -550,7 +553,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                             freq = 1
                         else:
                             self.frequencyCntDict[Id_int] += 1
-                            freq = self.frequencyCntDict[Id_int] / (currTS - self.frequencyTSDict[Id_int])
+                            deltaTS = currTS - self.frequencyTSDict[Id_int]
+                            if deltaTS <= 0:
+                                freq = -1
+                            else:
+                                freq = self.frequencyCntDict[Id_int] / deltaTS
                     data = "{:.1f}".format(freq)
                 newItem = QTableWidgetItem(data)
                 if uiCol == colDLC:
@@ -580,8 +587,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             for i in range(colsNum):
                 self.mainMessageTableWidget.item(row, i).setBackground(highlightKnownIdColor)
 
-        self.receivedPackets = self.receivedPackets + 1
+        self.receivedPackets += 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
+
+        self.receivedPacketsRate += 1
+        if time.time() - self.packageRateTime > 1:
+            self.packageRateTime += 1
+            self.packageRateLabel.setText(str(self.receivedPacketsRate))
+            self.receivedPacketsRate = 0
 
         # update NotSeen for all messages
         if showNotSeenInsteadOfIDE and self.groupModeCheckBox.isChecked():

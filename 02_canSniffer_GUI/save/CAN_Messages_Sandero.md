@@ -499,12 +499,13 @@ Other derivable info:
 
 ## To do:
 - Yaw rate
+	- probably 0xC6 d4-d7
+	- other gyro (pitch rate, roll rate)?
  
 
 ## Seems not doable, yet:
 - Steering wheel angle 0xC6
-    - the message doesn't come at a good pace
-    - d0 goes from 96 (wheel turned leftmost) to 6A (wheel turned rightmost); d1 might be LSB
+    - d0 goes from 96 (wheel turned leftmost) to 6A (wheel turned rightmost); d1 is LSB
     - d2d3 looks like steering wheel angle variation
 
 
@@ -527,59 +528,73 @@ Other derivable info:
 ```
 ID  (Label)                       msg/s
 ---------------------------------------
-12E (IMU)                          97.8
-29A (WheelsSpeed)                  48.1
-242                                46.6
-354                                22.5
-352 (Brake)                        22.5
-5DE (Lights)                       10.0
-5DF                                 9.8
-3B7 (Illumination)                  9.7
-4F8 (Handbrake)                     9.7
-55D (SpeedGear_CarLock_Headlights)  9.6
-666                                 9.3
-5D7                                 9.2
-350 (CarLock)                       7.7
-69F                                 1
-C6                                  0.9
-6FB                                 0.3
-                            sum   314.7
+0C6                               100.0
+
+12E (IMU)                         100.0
+
+242                                50.0
+29A (WheelsSpeed)                  49.0
+
+350 (CarLock)                      10.2
+354                                25.0
+3B7 (Illumination)                  9.1
+
+4F8 (Handbrake)                    10.1
+
+352 (BrakePedal)                   25.0
+55D (SpeedGear_CarLock_Headlights) 10.1
+5DE (Lights_Doors)                 10.2
+5DF                                10.1
+
+69F                                 1.1
+6FB                                 0.4
+                            sum   410.0
 ```
 
-## Message frequency, engine turned on (not updated)
+## Message frequency, engine turned on
 ```
 ID  (Label)                       msg/s
 ---------------------------------------
-12E (IMU)                          90.6
-29A (WheelsSpeed)                  44.6
-242                                43.0
-18A (AccelarationPedal)            41.2
-1F6                                28.2
-354                                21.0
-352 (Brake)                        21.0
-217 (Speed)                        20.6
-2C6                                16.1
-5DE (Lights)                        9.2
+0C6                               100.0
+
+12E (IMU)                         100.0
+186 (EngineRPM)                    96.0
+18A (AccelarationPedal)            63.0
+1F6                                90.0
+
+217 (Speed)                        50.0
+242                                50.0
+29A (WheelsSpeed)                  50.0
+29C                                 0.3
+2C6                                50.0
+
+350 (CarLock)                       8.8
+352 (BrakePedal)                   25.0
+354                                24.0
 3B7 (Illumination)                  9.1
+
 4F8 (Handbrake)                     9.1
+
+500                                 8.3
+511                                10.0
+552                                 7.0
+55D (SpeedGear_CarLock_Headlights)  9.8
+564                                 9.1
+575                                 6.4
+5D7                                 4.8
+5DA (EngineTemperature)             6.4
+5DE (Lights_Doors)                  9.2
 5DF                                 9.0
-666                                 8.9
-55D (SpeedGear_CarLock_Headlights)  8.8
-5D7                                 8.6
-350 (CarLock)                       7.0
-575                                 5.1
-653 (Seatbelt)                      4.9
-552                                 4.2
-564                                 4.1
-65C                                 3.9
-500                                 3.8
-186 (EngineRPM)                     2.2
-C6                                  1.3
-5DA (EngineTemperature)             1.1
-648                                 1.0
-511                                 0.9
+
+648                                 4.7
+653 (Seatbelt)                      7.3
+65C                                 1.6
+666                                 1.7
+66A                                10.0
 69F                                 0.9
-29C                                 0.8
-6FB                                 0.3
-                            sum   430.5
+6FB                                 0.5
+                            sum   832.0
 ```
+
+The message IDs on CAN are used for message priority: the smaller the ID, the higher the priority.
+It's no wonder they use smaller IDs for high frequency. High frequency messages need small lag.
