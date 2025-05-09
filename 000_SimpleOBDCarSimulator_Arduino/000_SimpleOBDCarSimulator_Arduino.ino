@@ -18,7 +18,7 @@ char str[50];
 
 void setup() {
   Serial.begin(250000);
-  Serial.println("Started");
+  Serial.println("SimpleOBDCarSimulator Started");
 
   mcp2515.reset();
   mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);

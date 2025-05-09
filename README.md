@@ -21,3 +21,6 @@ Achievement of this fork:
 	- implementation in https://github.com/cpocol/canDrive/blob/main/000_SimpleOBDCarSimulator_Arduino
 
 ![Snapshot](000_SimpleOBDCarSimulator_Arduino/Snapshot.gif)
+
+5. canSniffer was dropping CAN messages. For some reason, the CAN library (https://github.com/sandeepmistry/arduino-CAN) wasn't fast enough. I tried it with both the interrupt based method and the polling based method: same behavior. Switching to a different CAN library (https://github.com/autowp/arduino-mcp2515) has fixed the problem: the message rate went up from 600 messages/second to 900 messages/second. This has fixed an issue that I have observed in the past: the steering wheel angle was coming at a non constant rate (usually it was coming tens of times per second, but sometimes it was missing for several seconds). The new sniffer is available at https://github.com/cpocol/canDrive/tree/main/01_canSniffer_Arduino/canSniffer_autowp
+Sending messages to the car (from 02_canSniffer_GUI) is not currently handled. Still, this can be done in a custom manner in the loop function of canSniffer_autowp (some examples are there and commented out). Exemplified by https://www.youtube.com/shorts/TLSTojeKgg8

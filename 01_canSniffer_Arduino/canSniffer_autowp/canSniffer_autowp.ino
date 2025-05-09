@@ -37,9 +37,77 @@ void printMessage(can_frame msg) {
 int receivedMsgRate = 0;
 
 void loop() {
+  struct can_frame canMsgW;
+
+  // static uint16_t rpm = 0;
+  // rpm++;
+  // canMsgW.can_id  = 0x186; //EngineRPM
+  // canMsgW.can_dlc = 7;
+  // canMsgW.data[0] = rpm/256;
+  // canMsgW.data[1] = 0x00;
+  // canMsgW.data[2] = 0x00;
+  // canMsgW.data[3] = 0x00;
+  // canMsgW.data[4] = 0x00;
+  // canMsgW.data[5] = 0x00;
+  // canMsgW.data[6] = 0x00;
+  // canMsgW.data[7] = 0x00;
+
+  // static uint16_t speed = 0;
+  // int factor = 3;
+  // for (int i = 0; i < 300; i++) //simmulate delay
+  //   if (i < 1)
+  //     speed++;
+  // if (speed > factor*21000)
+  //   speed = factor*21000;
+
+  // canMsgW.can_id  = 0x217; //Speed
+  // canMsgW.can_dlc = 7;
+  // canMsgW.data[0] = 0x00;
+  // canMsgW.data[1] = 0x00;
+  // canMsgW.data[2] = 0x00;
+  // canMsgW.data[3] = speed/100/factor;
+  // canMsgW.data[4] = 0x00;
+  // canMsgW.data[5] = 0x00;
+  // canMsgW.data[6] = 0x00;
+  // canMsgW.data[7] = 0x00;
+
+  // canMsgW.can_id  = 0x5DE; //Lights
+  // canMsgW.can_dlc = 8;
+  // //canMsgW.data[0] = 0b01111111;
+  // canMsgW.data[0] = 0b00000000;
+  // canMsgW.data[1] = 0x00;
+  // canMsgW.data[2] = 0x00;
+  // canMsgW.data[3] = 0x00;
+  // canMsgW.data[4] = 0x00;
+  // canMsgW.data[5] = 0x00;
+  // canMsgW.data[6] = 0x00;
+  // canMsgW.data[7] = 0x00;
+
+  // canMsgW.can_id  = 0x743; //Odo request
+  // canMsgW.can_dlc = 8;
+  // canMsgW.data[0] = 0x03;
+  // canMsgW.data[1] = 0x22;
+  // canMsgW.data[2] = 0x02;
+  // canMsgW.data[3] = 0x07;
+  // canMsgW.data[4] = 0x00;
+  // canMsgW.data[5] = 0x00;
+  // canMsgW.data[6] = 0x00;
+  // canMsgW.data[7] = 0x00;
+
+  // canMsgW.can_id  = 0x7DF; //OBD request
+  // canMsgW.can_dlc = 8;
+  // canMsgW.data[0] = 1 + 1; //Number of additional data bytes
+  // canMsgW.data[1] = 0x01; //Service/Mode 1 => show current data
+  // canMsgW.data[2] = 0x05; //Engine coolant temperature
+
+  //mcp2515.sendMessage(&canMsgW);
+  //delay(1);
+
   struct can_frame canMsg;
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
-    printMessage(canMsg);
+    //if (canMsg.can_id == 0x0763) //Odo response
+    //if (canMsg.can_id > 0x700)
+      printMessage(canMsg);
     receivedMsgRate++;
   }
 

@@ -1231,5 +1231,5 @@ class Ui_MainWindow(object):
         self.packageCounterLabel.setText(_translate("MainWindow", "0"))
         self.packageRateLabel.setText(_translate("MainWindow", "-1"))
         self.package_2.setText(_translate("MainWindow", "Package count:"))
-        self.package_3.setText(_translate("MainWindow", "Package/s:"))
+        self.package_3.setText(_translate("MainWindow", "Packages/s:"))
         self.showControlsButton.setText(_translate("MainWindow", "Show Controls"))

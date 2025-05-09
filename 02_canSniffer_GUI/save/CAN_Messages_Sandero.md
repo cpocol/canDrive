@@ -6,7 +6,8 @@
 ```
 
 ID(hex) Descr                                   DLC     d0       d1       d2       d3       d4       d5       d6       d7
--------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+   0C6  Steering wheel                           8   AAAAAAAA AAAAAAAA VVVVVVVV VVVVVVVV ........ ........ ........ ........
    12E  IMU                                      7   LLLLLLLL llllllll llllllll ........ ........ ........ ........
    186  EngineRPM                                7   RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
    18A  Acceleration pedal                       6   ........ ........ PPPPPPPP PPPPPPPP ........ ........
@@ -41,7 +42,24 @@ Length (DLC) = 8 Bytes
 ........ ........ ........ ........ ........ ........ ........ ........
 ^^^ TEMPLATE ^^^
 
+	
+===========================================================================================================================
+0C6
+Descr: Steering wheel
+Source: 
+Dest: 
+Length (DLC) = 8 Bytes
+AAAAAAAA AAAAAAAA VVVVVVVV VVVVVVVV ........ ........ ........ ........
+|                 |looking like Steering wheel angle variation
+|                 |also centered around 80 on d2
+|                 --------------------------------------------------------------------------------------------------------------------------------
+|Steering wheel angle
+|d0 goes from 96 (wheel turned leftmost) to 6A (wheel turned rightmost) with 80 in the middle
+|d0 changes its value when the steering wheel turns 25.714 degrees (it's probably 25.6)
+|d1 is LSB; resolution: 0.1 degrees
+--------------------------------------------------------------------------------------------------------------------------
 
+	
 ===========================================================================================================================
 12E
 Descr: IMU
@@ -302,10 +320,10 @@ Descr: Odo request via OBD \ UDS protocol
 Source: 
 Dest: 
 Length (DLC) = 8 Bytes
-763000008 03 22 02 07 00 00 00 00
-                   |This one seems to matter
-                   |07 - Odometer
-                   --------------
+743 00 00 08 03 22 02 07 00 00 00 00
+                      |This one seems to matter
+                      |07 - Odometer
+                      --------------
 
 (2)
 
@@ -357,64 +375,64 @@ Dest: TESTER
 ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
 7E8 8   06 41 00 BE 3E B8 11
 0xBE3EB811 = 10111110 00111110 10111000 00010001
-             | |||||    |||||  | |||       |   |PIDs supported [$21 - $40]
-             | |||||    |||||  | |||       |   --------------------------------------------
-             | |||||    |||||  | |||       |OBD standards this vehicle conforms to
-             | |||||    |||||  | |||       --------------------------------------------
-             | |||||    |||||  | |||Oxygen Sensor 2 A: Voltage B: Short term fuel trim
-             | |||||    |||||  | ||---------------------------------------------------
-             | |||||    |||||  | ||Oxygen Sensor 1 A: Voltage B: Short term fuel trim
-             | |||||    |||||  | |---------------------------------------------------
-             | |||||    |||||  | |Oxygen sensors present (in 2 banks)
-             | |||||    |||||  | ------------------------------------
-             | |||||    |||||  |Throttle position
-             | |||||    |||||  ------------------
-             | |||||    |||||Intake air temperature
-             | |||||    ||||-----------------------
-             | |||||    ||||Timing advance
-             | |||||    |||---------------
-             | |||||    |||Vehicle speed
-             | |||||    ||--------------
-             | |||||    ||Engine speed
-             | |||||    |-------------
-             | |||||    |Intake manifold absolute pressure
-             | |||||    ----------------------------------
-             | |||||Long term fuel trim (LTFT)—Bank 1
-             | ||||----------------------------------
-             | ||||Short term fuel trim (STFT)—Bank 1
-             | |||-----------------------------------
-             | |||Engine coolant temperature	
-             | ||---------------------------
-             | ||Calculated engine load
-             | |-----------------------
-             | |Fuel system status	
-             | -------------------
-             |Monitor status since DTCs cleared
-             ----------------------------------
+             | |||||    |||||  | |||       |   |PID20: PIDs supported [$21 - $40]
+             | |||||    |||||  | |||       |   -----------------------------------
+             | |||||    |||||  | |||       |PID1C: OBD standards this vehicle conforms to
+             | |||||    |||||  | |||       ----------------------------------------------
+             | |||||    |||||  | |||PID15: Oxygen Sensor 2 A: Voltage B: Short term fuel trim
+             | |||||    |||||  | ||----------------------------------------------------------
+             | |||||    |||||  | ||PID14: Oxygen Sensor 1 A: Voltage B: Short term fuel trim
+             | |||||    |||||  | |----------------------------------------------------------
+             | |||||    |||||  | |PID13: Oxygen sensors present (in 2 banks)
+             | |||||    |||||  | -------------------------------------------
+             | |||||    |||||  |PID11: Throttle position
+             | |||||    |||||  -------------------------
+             | |||||    |||||PID0F: Intake air temperature
+             | |||||    ||||------------------------------
+             | |||||    ||||PID0E: Timing advance
+             | |||||    |||----------------------
+             | |||||    |||PID0D: Vehicle speed
+             | |||||    ||---------------------
+             | |||||    ||PID0C: Engine speed
+             | |||||    |--------------------
+             | |||||    |PID0B: Intake manifold absolute pressure
+             | |||||    -----------------------------------------
+             | |||||PID07: Long term fuel trim (LTFT)—Bank 1
+             | ||||-----------------------------------------
+             | ||||PID06: Short term fuel trim (STFT)—Bank 1
+             | |||------------------------------------------
+             | |||PID05: Engine coolant temperature	
+             | ||----------------------------------
+             | ||PID04: Calculated engine load
+             | |------------------------------
+             | |PID03: Fuel system status	
+             | --------------------------
+             |PID01: Monitor status since DTCs cleared
+             -----------------------------------------
 
 (example of) real response for PIDs supported [$21 - $40]:
 ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
 -------------------------------
 7E8 8   06 41 20 A0 01 80 01
 0xA0018001 = 10100000 00000001 10000000 00000001
-             | |             | |               |PIDs supported [$41 - $60]
-             | |             | |               ---------------------------
-             | |             | |Distance traveled since codes cleared
-             | |             | --------------------------------------
-             | |             |Warm-ups since codes cleared
-             | |             -----------------------------
-             | |Fuel Rail Gauge Pressure (diesel, or gasoline direct injection)
-             | ----------------------------------------------------------------
-             |Distance traveled with malfunction indicator lamp (MIL) on
-             -----------------------------------------------------------
+             | |             | |               |PID40: PIDs supported [$41 - $60]
+             | |             | |               ----------------------------------
+             | |             | |PID31: Distance traveled since codes cleared
+             | |             | ---------------------------------------------
+             | |             |PID30: Warm-ups since codes cleared
+             | |             ------------------------------------
+             | |PID23: Fuel Rail Gauge Pressure (diesel, or gasoline direct injection)
+             | -----------------------------------------------------------------------
+             |PID21: Distance traveled with malfunction indicator lamp (MIL) on
+             ------------------------------------------------------------------
 
 (example of) real response for PIDs supported [$41 - $60]:
 ID  DLC d0 d1 d2 d3 d4 d5 d6 d7
 -------------------------------
 7E8 8   06 41 40 80 00 00 00
 0x80000000 = 10000000 00000000 00000000 00000000
-             |Monitor status this drive cycle
-             --------------------------------
+             |PID41: Monitor status this drive cycle
+             ---------------------------------------
 
 ===========================================================================================================================
 
@@ -504,9 +522,6 @@ Other derivable info:
  
 
 ## Seems not doable, yet:
-- Steering wheel angle 0xC6
-    - d0 goes from 96 (wheel turned leftmost) to 6A (wheel turned rightmost); d1 is LSB
-    - d2d3 looks like steering wheel angle variation
 
 
 ## Not Doable:
@@ -536,12 +551,12 @@ ID  (Label)                       msg/s
 29A (WheelsSpeed)                  49.0
 
 350 (CarLock)                      10.2
+352 (BrakePedal)                   25.0
 354                                25.0
 3B7 (Illumination)                  9.1
 
 4F8 (Handbrake)                    10.1
 
-352 (BrakePedal)                   25.0
 55D (SpeedGear_CarLock_Headlights) 10.1
 5DE (Lights_Doors)                 10.2
 5DF                                10.1
