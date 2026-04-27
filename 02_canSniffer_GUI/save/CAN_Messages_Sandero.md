@@ -1,6 +1,6 @@
 ## References:
-(1) Adam's git https://github.com/adamtheone/canDrive \
-(2) https://canhacker.com/examples/renault-kaptur-can-bus/
+\[1\] Adam's git https://github.com/adamtheone/canDrive and YT https://www.youtube.com/playlist?list=PLNiFaO8hU1z0o_6DSxk-jcVAM3UCUR-pY \
+\[2\] https://canhacker.com/examples/renault-kaptur-can-bus/
 
 ## Map of reverse engineered bytes/bits (more details below):
 ```
