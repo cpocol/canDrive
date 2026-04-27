@@ -86,7 +86,7 @@ RRRRRRRR RRRRRRRR ........ ........ ........ ........ ........
 |Engine RPM = d0 * 32; d1 probably shows number of 1/8ths of a rotation
 ----------------------------------------------------------------------
 
-(2)
+\[2\]
 
 
 ===========================================================================================================================
@@ -112,7 +112,7 @@ Length (DLC) = 7 Bytes
                            |(d3 * 255 + d4) * 0.006274 Km/h
                            --------------------------------
 
-(2)
+\[2\]
 
 
 ===========================================================================================================================
@@ -166,7 +166,7 @@ Length (DLC) = 8 Bytes
                                              |           turns into 0 immediately after the key gets back from ignition position
                                              ----------------------------------------------------------------------------------
 
-(2) For cluster ON send:
+\[2\] For cluster ON send:
 ID=0x350 DLC=8 DATA=FF 00 00 00 00 00 00 00
 Turns on for a very short period of time. It blinks even when sent periodically (1 ms)
 
@@ -205,7 +205,7 @@ Length (DLC) = 3 Bytes
 ........ ........ ........
 
 
-(2) DLC=3; DATA=00 00 04;
+\[2\] DLC=3; DATA=00 00 04;
 Gear
 
 First byte PRNDL
@@ -249,7 +249,7 @@ Length (DLC) = 8 Bytes
             |                             |   |01 - High beam
             |                             |   ---------------
             |                             |Car locked
-            |                             |increments every time the car is locked 0->1->2->3->0->...
+            |                             |increments every time the car is locked 0->1->2->0->...
             |                             -----------------------------------------------------------
             |Speed gear; Rear lights
             |110 - Neutral
@@ -325,7 +325,7 @@ Length (DLC) = 8 Bytes
                       |07 - Odometer
                       --------------
 
-(2)
+\[2\]
 
 
 ===========================================================================================================================

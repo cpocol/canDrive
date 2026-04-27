@@ -131,7 +131,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.mainMessageTableWidget.setColumnWidth(colDLC, 50)
         for i in range(colD0, self.mainMessageTableWidget.columnCount()):
             self.mainMessageTableWidget.setColumnWidth(i, 32)
-        self.showFullScreen()
+        #self.showFullScreen()
+        self.showMaximized()
 
         if showFrequencyInsteadOfRTR:
             newItem = QTableWidgetItem("Frequency")
